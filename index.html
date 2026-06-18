@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA World Cup 2026</title>
+<!--
+  DATA SOURCE: openfootball/worldcup.json (GitHub, free, no key)
+  Scores update ~daily. For in-match live scores → tap "Sofascore" link.
+  Dubai Time = UTC+4 = ET+8
+-->
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090e;--s1:#10131c;--s2:#161a26;
+  --bdr:rgba(255,255,255,0.07);--bdr2:rgba(255,255,255,0.14);
+  --gold:#f4c430;--gold2:#ffd84d;--gbg:rgba(244,196,48,.09);--gbdr:rgba(244,196,48,.26);
+  --w:#edf0f8;--gr:#8892ad;--dim:#4a5268;
+  --green:#2ed172;--grbg:rgba(46,209,114,.1);
+  --red:#ff5050;--rdbg:rgba(255,80,80,.1);
+  --blue:#5598f4;--blbg:rgba(85,152,244,.1);
+  --live:#ff3030;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:linear-gradient(180deg,#0d1020 0%,var(--bg) 100%);border-bottom:1px solid var(--bdr2);padding:20px 16px 14px;text-align:center;position:relative;}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hdr-icon{font-size:28px;display:block;margin-bottom:4px;}
+.hdr h1{font-family:'Bebas Neue';font-size:clamp(24px,6vw,48px);letter-spacing:4px;color:var(--gold);text-shadow:0 0 32px rgba(244,196,48,.3);line-height:1;}
+.hdr-sub{font-size:10px;font-weight:600;letter-spacing:3px;color:var(--gr);text-transform:uppercase;margin-top:3px;}
+.hdr-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:10px;}
+.pill{background:rgba(255,255,255,.05);border:1px solid var(--bdr2);border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600;color:var(--gr);}
+.pill.g{background:var(--gbg);border-color:var(--gbdr);color:var(--gold);}
+
+/* STATUS BAR */
+.sbar{background:#0b0d17;border-bottom:1px solid var(--bdr);padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rfbtn{display:flex;align-items:center;gap:6px;background:var(--green);border:none;border-radius:7px;padding:6px 14px;font-family:'Inter';font-size:11px;font-weight:700;color:#000;cursor:pointer;text-transform:uppercase;letter-spacing:.6px;transition:filter .2s;}
+.rfbtn:hover{filter:brightness(1.1);}
+.rfbtn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-spin{width:11px;height:11px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.sbar-txt{font-size:11px;color:var(--dim);}
+.sbar-txt b{color:var(--green);}
+.sbar-txt.err b{color:var(--red);}
+.sbar-r{margin-left:auto;display:flex;align-items:center;gap:14px;}
+.lnk{font-size:11px;font-weight:600;text-decoration:none;}
+.lnk.live-lnk{color:var(--live);}
+.lnk.live-lnk::before{content:'● ';animation:blink 1.2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.clk{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);}
+
+/* TABS */
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;background:#0b0d17;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:30;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Inter';text-transform:uppercase;}
+.tab:hover{color:var(--gr);}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* PANELS */
+.panel{display:none;padding:12px 14px;}
+.panel.on{display:block;}
+.note{background:var(--blbg);border:1px solid rgba(85,152,244,.2);border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:600;color:var(--blue);}
+
+/* LOADER */
+.loader{text-align:center;padding:48px 20px;color:var(--dim);}
+.big-spin{width:30px;height:30px;border:3px solid var(--bdr2);border-top-color:var(--gold);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 12px;}
+
+/* TODAY */
+.today-hd{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;}
+.mc{background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.mc.eg{background:var(--gbg);border-color:var(--gbdr);}
+.mc.live{border-color:rgba(255,48,48,.35);background:rgba(255,48,48,.04);}
+.mc.done{opacity:.72;}
+.mc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mc-time{font-family:'JetBrains Mono';font-size:14px;font-weight:600;color:var(--gold);min-width:50px;flex-shrink:0;}
+.mc-time.t-done{color:var(--green);}
+.mc-time.t-live{color:var(--live);}
+.mc-teams{flex:1;font-size:14px;font-weight:700;color:var(--w);}
+.mc-score{font-family:'Bebas Neue';font-size:22px;color:var(--gold2);letter-spacing:2px;}
+.mc-foot{display:flex;gap:7px;align-items:center;margin-top:4px;flex-wrap:wrap;font-size:11px;color:var(--dim);}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;}
+.t-g{background:var(--blbg);color:var(--blue);}
+.t-ok{background:var(--grbg);color:var(--green);}
+.t-lv{background:var(--rdbg);color:var(--live);}
+.t-nx{background:rgba(255,255,255,.04);color:var(--dim);}
+.ibox{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:11px 13px;margin-top:8px;}
+.ibox.gold{background:var(--gbg);border-color:var(--gbdr);}
+.ilbl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+.ilbl.g{color:var(--gold);}
+.irow{font-size:12px;color:var(--gr);line-height:2.1;}
+.irow strong{color:var(--w);}
+
+/* GROUPS */
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(278px,1fr));gap:10px;}
+.gc{background:var(--s1);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;}
+.gc.eg{border-color:var(--gbdr);box-shadow:0 0 18px rgba(244,196,48,.06);}
+.gc-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--s2);border-bottom:1px solid var(--bdr);}
+.gc-lbl{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;color:var(--w);}
+.gc.eg .gc-lbl{color:var(--gold);}
+.eg-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--gbg);border:1px solid var(--gbdr);color:var(--gold);text-transform:uppercase;letter-spacing:.8px;}
+table.st{width:100%;border-collapse:collapse;}
+table.st th{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--dim);text-transform:uppercase;padding:5px 10px;text-align:center;border-bottom:1px solid var(--bdr);}
+table.st th:first-child{text-align:left;}
+table.st td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.04);text-align:center;font-size:12px;color:var(--gr);}
+table.st td:first-child{text-align:left;font-weight:600;color:var(--w);}
+table.st tr:last-child td{border-bottom:none;}
+table.st tr.egr td{color:var(--gold);}
+.pts{font-family:'JetBrains Mono';font-weight:700;color:var(--w)!important;}
+table.st tr.egr .pts{color:var(--gold)!important;}
+.q1{border-left:3px solid var(--green);}
+.q3{border-left:3px solid var(--gold);}
+.el{border-left:3px solid transparent;}
+.gc-ms{border-top:1px solid var(--bdr);}
+.mi{padding:6px 12px;border-bottom:1px solid rgba(255,255,255,.04);}
+.mi:last-child{border-bottom:none;}
+.mi.egm{background:rgba(244,196,48,.05);border-left:2px solid var(--gold);}
+.mi-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.mi-t{font-size:12px;font-weight:600;color:var(--w);}
+.mi-s{font-family:'JetBrains Mono';font-size:12px;font-weight:600;color:var(--gold2);}
+.mi-bot{font-size:10px;color:var(--dim);margin-top:2px;}
+.mi-dxb{color:var(--gold);font-weight:700;}
+
+/* SCHEDULE */
+.sb{margin-bottom:22px;}
+.sb-ttl{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;color:var(--w);padding:8px 0 6px;border-bottom:1px solid var(--bdr);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.sp{font-size:9px;font-family:'Inter';font-weight:700;letter-spacing:1.2px;padding:2px 8px;border-radius:4px;text-transform:uppercase;}
+.sp-g{background:var(--blbg);color:var(--blue);}
+.sp-k{background:var(--rdbg);color:var(--red);}
+.sp-f{background:var(--gbg);color:var(--gold);}
+.sw{overflow-x:auto;}
+table.ft{width:100%;border-collapse:collapse;min-width:420px;}
+table.ft thead th{text-align:left;padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);background:var(--s2);border-bottom:1px solid var(--bdr2);}
+table.ft tbody td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+table.ft tbody tr:hover td{background:rgba(255,255,255,.02);}
+table.ft tbody tr.dr td{color:var(--dim);}
+table.ft tbody tr.er td{background:rgba(244,196,48,.06);}
+table.ft tbody tr.lr td{background:rgba(255,48,48,.04);}
+table.ft tbody tr.fr td{background:var(--gbg)!important;}
+.tn{font-family:'JetBrains Mono';font-size:10px;color:var(--dim);}
+.tdt{font-size:11px;color:var(--gr);white-space:nowrap;}
+.ttime{font-family:'JetBrains Mono';font-size:12px;font-weight:700;color:var(--gold);}
+.tm2{font-weight:600;color:var(--w);font-size:13px;}
+.tsc{font-family:'JetBrains Mono';font-weight:700;color:var(--gold2);font-size:12px;white-space:nowrap;}
+.tv{font-size:11px;color:var(--dim);}
+.gt{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--blbg);color:var(--blue);}
+.fmt-box{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+.fmt-box h3{font-family:'Bebas Neue';font-size:14px;letter-spacing:1.5px;color:var(--gold);margin-bottom:5px;}
+.fmt-box p{font-size:12px;color:var(--gr);line-height:1.7;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 0;font-size:11px;color:var(--dim);}
+.leg{display:flex;align-items:center;gap:4px;}
+.leg-dot{width:8px;height:8px;border-radius:1px;}
+
+@media(max-width:560px){.tv{display:none;}.gg{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <span class="hdr-icon">🏆</span>
+  <h1>FIFA World Cup 2026</h1>
+  <div class="hdr-sub">Canada · Mexico · United States</div>
+  <div class="hdr-pills">
+    <span class="pill">Jun 11 – Jul 19, 2026</span>
+    <span class="pill">48 Teams · 104 Matches</span>
+    <span class="pill g">🕐 Dubai Time (UTC+4)</span>
+  </div>
+</div>
+
+<div class="sbar">
+  <button class="rfbtn" id="rfBtn" onclick="loadData(true)">
+    <span id="rfIco">↻</span> Refresh
+  </button>
+  <span class="sbar-txt" id="sbarTxt">Loading…</span>
+  <div class="sbar-r">
+    <span class="clk" id="clk"></span>
+    <a class="lnk live-lnk" href="https://www.sofascore.com/football/tournament/world/world-championship/16" target="_blank">Live Scores</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on"  onclick="go('today',this)">📅 Today</button>
+  <button class="tab"     onclick="go('groups',this)">🏟 Groups</button>
+  <button class="tab"     onclick="go('sched',this)">📋 Schedule</button>
+  <button class="tab"     onclick="go('ko',this)">⚡ Knockout</button>
+</div>
+
+<div id="panel-today"  class="panel on"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+<div id="panel-groups" class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+<div id="panel-sched"  class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+<div id="panel-ko"     class="panel"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// DATA SOURCE — openfootball (free, no key, updates daily)
+// ══════════════════════════════════════════════════════════
+const OF_URL = 'https://worldcup26.ir/get/games';
+
+// ══════════════════════════════════════════════════════════
+// FLAGS
+// ══════════════════════════════════════════════════════════
+const FL={
+  'Mexico':'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Czechia':'🇨🇿','Czech Republic':'🇨🇿',
+  'Canada':'🇨🇦','Bosnia & Herzegovina':'🇧🇦','Bosnia and Herzegovina':'🇧🇦','Qatar':'🇶🇦','Switzerland':'🇨🇭',
+  'Brazil':'🇧🇷','Morocco':'🇲🇦','Haiti':'🇭🇹','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'USA':'🇺🇸','United States':'🇺🇸','Paraguay':'🇵🇾','Australia':'🇦🇺','Türkiye':'🇹🇷','Turkey':'🇹🇷',
+  'Germany':'🇩🇪','Curaçao':'🇨🇼','Curacao':'🇨🇼',"Côte d'Ivoire":'🇨🇮','Ivory Coast':'🇨🇮','Ecuador':'🇪🇨',
+  'Netherlands':'🇳🇱','Japan':'🇯🇵','Sweden':'🇸🇪','Tunisia':'🇹🇳',
+  'Belgium':'🇧🇪','Egypt':'🇪🇬','Iran':'🇮🇷','IR Iran':'🇮🇷','New Zealand':'🇳🇿',
+  'Spain':'🇪🇸','Cape Verde':'🇨🇻','Cabo Verde':'🇨🇻','Saudi Arabia':'🇸🇦','Uruguay':'🇺🇾',
+  'France':'🇫🇷','Senegal':'🇸🇳','Iraq':'🇮🇶','Norway':'🇳🇴',
+  'Argentina':'🇦🇷','Algeria':'🇩🇿','Austria':'🇦🇹','Jordan':'🇯🇴',
+  'Portugal':'🇵🇹','DR Congo':'🇨🇩','Congo DR':'🇨🇩','Colombia':'🇨🇴','Uzbekistan':'🇺🇿',
+  'England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croatia':'🇭🇷','Ghana':'🇬🇭','Panama':'🇵🇦'
+};
+const f  = n => FL[n]||'🏳';
+const fe = n => `${f(n)} ${n}`;
+
+// ══════════════════════════════════════════════════════════
+// CANONICAL TEAM NAMES
+// ══════════════════════════════════════════════════════════
+function canon(n){
+  const MAP={
+    'Czech Republic':'Czechia','Turkey':'Türkiye','Cabo Verde':'Cape Verde',
+    "Côte d'Ivoire":'Ivory Coast','Congo DR':'DR Congo','Curacao':'Curaçao',
+    'IR Iran':'Iran','Bosnia and Herzegovina':'Bosnia & Herzegovina',
+    'United States':'USA'
+  };
+  return MAP[n]||n;
+}
+
+// ══════════════════════════════════════════════════════════
+// GROUP STRUCTURE
+// ══════════════════════════════════════════════════════════
+const GROUPS={
+  A:['Mexico','South Korea','Czechia','South Africa'],
+  B:['Canada','Bosnia & Herzegovina','Switzerland','Qatar'],
+  C:['Brazil','Morocco','Haiti','Scotland'],
+  D:['USA','Paraguay','Australia','Türkiye'],
+  E:['Germany','Curaçao','Ivory Coast','Ecuador'],
+  F:['Netherlands','Japan','Sweden','Tunisia'],
+  G:['Belgium','Egypt','Iran','New Zealand'],
+  H:['Spain','Cape Verde','Saudi Arabia','Uruguay'],
+  I:['France','Senegal','Iraq','Norway'],
+  J:['Argentina','Algeria','Austria','Jordan'],
+  K:['Portugal','DR Congo','Colombia','Uzbekistan'],
+  L:['England','Croatia','Ghana','Panama']
+};
+
+// ══════════════════════════════════════════════════════════
+// HARDCODED MATCHES (instant display + fallback)
+// Dubai times = UTC+4. All confirmed results included.
+// ══════════════════════════════════════════════════════════
+// ── UTC = ET + 4hrs. Dubai = UTC + 4hrs. So Dubai = ET + 8hrs ──
+// All UTC times below are calculated as: ET kickoff + 4 hours
+// Dubai display = UTC + 4 (handled automatically by toLocaleTimeString)
+const SEED=[
+  // ── MD1 ALL DONE ──────────────────────────────────────────────────────
+  // Mexico vs S.Africa: 3pm ET Jun11 = 19:00 UTC → 23:00 Dubai Jun11
+  {t1:'Mexico',      t2:'South Africa',         s:[2,0], g:'A', v:'Mexico City',   utc:'2026-06-11T19:00Z'},
+  // S.Korea vs Czechia: 8pm ET Jun11 = 00:00 UTC Jun12 → 04:00 Dubai Jun12
+  {t1:'South Korea', t2:'Czechia',               s:[2,1], g:'A', v:'Guadalajara',   utc:'2026-06-12T00:00Z'},
+  // Canada vs Bosnia: 3pm ET Jun12 = 19:00 UTC → 23:00 Dubai Jun12
+  {t1:'Canada',      t2:'Bosnia & Herzegovina',  s:[1,1], g:'B', v:'Toronto',       utc:'2026-06-12T19:00Z'},
+  // USA vs Paraguay: 6pm ET Jun12 = 22:00 UTC → 02:00 Dubai Jun13
+  {t1:'USA',         t2:'Paraguay',              s:[4,1], g:'D', v:'Los Angeles',   utc:'2026-06-12T22:00Z'},
+  // Switzerland vs Qatar: 1pm ET Jun13 = 17:00 UTC → 21:00 Dubai Jun13
+  {t1:'Switzerland', t2:'Qatar',                 s:[1,1], g:'B', v:'Santa Clara',   utc:'2026-06-13T17:00Z'},
+  // Brazil vs Morocco: 7pm ET Jun13 = 23:00 UTC → 03:00 Dubai Jun14
+  {t1:'Brazil',      t2:'Morocco',               s:[1,1], g:'C', v:'New Jersey',    utc:'2026-06-13T23:00Z'},
+  // Scotland vs Haiti: 10pm ET Jun13 = 02:00 UTC Jun14 → 06:00 Dubai Jun14
+  {t1:'Scotland',    t2:'Haiti',                 s:[1,0], g:'C', v:'Boston',        utc:'2026-06-14T02:00Z'},
+  // Australia vs Türkiye: 9pm ET Jun13 = 01:00 UTC Jun14 → 05:00 Dubai Jun14
+  {t1:'Australia',   t2:'Türkiye',               s:[2,0], g:'D', v:'Vancouver',     utc:'2026-06-14T01:00Z'},
+  // Germany vs Curaçao: 1pm ET Jun14 = 17:00 UTC → 21:00 Dubai Jun14
+  {t1:'Germany',     t2:'Curaçao',               s:[7,1], g:'E', v:'Houston',       utc:'2026-06-14T17:00Z'},
+  // Ivory Coast vs Ecuador: 7pm ET Jun14 = 23:00 UTC → 03:00 Dubai Jun15
+  {t1:'Ivory Coast', t2:'Ecuador',               s:[1,0], g:'E', v:'Philadelphia',  utc:'2026-06-14T23:00Z'},
+  // Netherlands vs Japan: 9pm ET Jun14 = 01:00 UTC Jun15 → 05:00 Dubai Jun15
+  {t1:'Netherlands', t2:'Japan',                 s:[2,2], g:'F', v:'Dallas',        utc:'2026-06-15T01:00Z'},
+  // Sweden vs Tunisia: 6pm ET Jun15 local Mty = 22:00 UTC Jun14? No - 10pm CDT = 10pm-5=03:00 UTC Jun15
+  // Sky Sports says "Group F: Sweden vs Tunisia, midnight BST Jun16" = 23:00 UTC Jun15 → 03:00 Dubai Jun16
+  {t1:'Sweden',      t2:'Tunisia',               s:[5,1], g:'F', v:'Monterrey',     utc:'2026-06-15T23:00Z'},
+  // Spain vs Cape Verde: noon ET Jun15 = 16:00 UTC → 20:00 Dubai Jun15
+  {t1:'Spain',       t2:'Cape Verde',            s:[0,0], g:'H', v:'Atlanta',       utc:'2026-06-15T16:00Z'},
+  // Saudi Arabia vs Uruguay: 2am BST Jun16 = 01:00 UTC Jun16 → 05:00 Dubai Jun16
+  {t1:'Saudi Arabia',t2:'Uruguay',               s:[1,1], g:'H', v:'Miami',         utc:'2026-06-16T01:00Z'},
+  // Belgium vs Egypt: 4pm ET Jun15 = 20:00 UTC → 00:00 Dubai Jun16
+  {t1:'Belgium',     t2:'Egypt',                 s:[1,1], g:'G', v:'Seattle',       utc:'2026-06-15T20:00Z'},
+  // Iran vs New Zealand: 7pm ET Jun15 = 23:00 UTC → 03:00 Dubai Jun16
+  {t1:'Iran',        t2:'New Zealand',           s:[2,2], g:'G', v:'Los Angeles',   utc:'2026-06-15T23:00Z'},
+  // France vs Senegal: 9pm ET Jun16 = 01:00 UTC Jun17 → 05:00 Dubai Jun17
+  {t1:'France',      t2:'Senegal',               s:[3,1], g:'I', v:'New York',      utc:'2026-06-17T01:00Z'},
+  // Norway vs Iraq: midnight ET Jun16/17 = 04:00 UTC Jun17 → 08:00 Dubai Jun17
+  {t1:'Norway',      t2:'Iraq',                  s:[4,1], g:'I', v:'Philadelphia',  utc:'2026-06-17T04:00Z'},
+  // Argentina vs Algeria: 1am ET Jun17 = 05:00 UTC → 09:00 Dubai Jun17
+  {t1:'Argentina',   t2:'Algeria',               s:[3,0], g:'J', v:'Kansas City',   utc:'2026-06-17T05:00Z'},
+  // Austria vs Jordan: 5am ET Jun17 = 09:00 UTC → 13:00 Dubai Jun17
+  {t1:'Austria',     t2:'Jordan',                s:[3,1], g:'J', v:'San Francisco', utc:'2026-06-17T09:00Z'},
+  // Portugal vs DR Congo: 1pm ET Jun17 = 17:00 UTC → 21:00 Dubai Jun17
+  {t1:'Portugal',    t2:'DR Congo',              s:[1,1], g:'K', v:'Houston',       utc:'2026-06-17T17:00Z'},
+  // England vs Croatia: 4pm ET Jun17 = 20:00 UTC → 00:00 Dubai Jun18
+  {t1:'England',     t2:'Croatia',               s:[4,2], g:'L', v:'Dallas',        utc:'2026-06-17T20:00Z'},
+
+  // ── MD2 ───────────────────────────────────────────────────────────────
+  // Ghana vs Panama: 7pm ET Jun17 = 23:00 UTC → 03:00 Dubai Jun18
+  {t1:'Ghana',       t2:'Panama',                s:null,  g:'L', v:'Toronto',       utc:'2026-06-17T23:00Z'},
+  // Uzbekistan vs Colombia: 10pm ET Jun17 = 02:00 UTC Jun18 → 06:00 Dubai Jun18
+  {t1:'Uzbekistan',  t2:'Colombia',              s:null,  g:'K', v:'Mexico City',   utc:'2026-06-18T02:00Z'},
+  // Czechia vs S.Africa: noon ET Jun18 = 16:00 UTC → 20:00 Dubai Jun18
+  {t1:'Czechia',     t2:'South Africa',          s:null,  g:'A', v:'Atlanta',       utc:'2026-06-18T16:00Z'},
+  // Switzerland vs Bosnia: 3pm ET Jun18 = 19:00 UTC → 23:00 Dubai Jun18
+  {t1:'Switzerland', t2:'Bosnia & Herzegovina',  s:null,  g:'B', v:'Los Angeles',   utc:'2026-06-18T19:00Z'},
+  // Canada vs Qatar: 6pm ET Jun18 = 22:00 UTC → 02:00 Dubai Jun19
+  {t1:'Canada',      t2:'Qatar',                 s:null,  g:'B', v:'Vancouver',     utc:'2026-06-18T22:00Z'},
+  // Mexico vs S.Korea: 11pm ET Jun18 = 03:00 UTC Jun19 → 07:00 Dubai Jun19
+  {t1:'Mexico',      t2:'South Korea',           s:null,  g:'A', v:'Guadalajara',   utc:'2026-06-19T03:00Z'},
+  // USA vs Australia: 3pm ET Jun19 = 19:00 UTC → 23:00 Dubai Jun19
+  {t1:'USA',         t2:'Australia',             s:null,  g:'D', v:'Seattle',       utc:'2026-06-19T19:00Z'},
+  // Scotland vs Morocco: 6pm ET Jun19 = 22:00 UTC → 02:00 Dubai Jun20
+  {t1:'Scotland',    t2:'Morocco',               s:null,  g:'C', v:'Boston',        utc:'2026-06-19T22:00Z'},
+  // Brazil vs Haiti: 9pm ET Jun19 = 01:00 UTC Jun20 → 05:00 Dubai Jun20
+  {t1:'Brazil',      t2:'Haiti',                 s:null,  g:'C', v:'Philadelphia',  utc:'2026-06-20T01:00Z'},
+  // Türkiye vs Paraguay: midnight ET Jun19/20 = 04:00 UTC Jun20 → 08:00 Dubai Jun20
+  {t1:'Türkiye',     t2:'Paraguay',              s:null,  g:'D', v:'Santa Clara',   utc:'2026-06-20T04:00Z'},
+  // Netherlands vs Sweden: 1pm ET Jun20 = 17:00 UTC → 21:00 Dubai Jun20
+  {t1:'Netherlands', t2:'Sweden',                s:null,  g:'F', v:'Houston',       utc:'2026-06-20T17:00Z'},
+  // Germany vs Ivory Coast: 4pm ET Jun20 = 20:00 UTC → 00:00 Dubai Jun21
+  {t1:'Germany',     t2:'Ivory Coast',           s:null,  g:'E', v:'Toronto',       utc:'2026-06-20T20:00Z'},
+  // Ecuador vs Curaçao: 8pm ET Jun20 = 00:00 UTC Jun21 → 04:00 Dubai Jun21
+  {t1:'Ecuador',     t2:'Curaçao',               s:null,  g:'E', v:'Kansas City',   utc:'2026-06-21T00:00Z'},
+  // Tunisia vs Japan: 10pm ET Jun20 = 02:00 UTC Jun21 → 06:00 Dubai Jun21
+  {t1:'Japan',       t2:'Tunisia',               s:null,  g:'F', v:'Monterrey',     utc:'2026-06-21T02:00Z'},
+  // Spain vs Saudi Arabia: noon ET Jun21 = 16:00 UTC → 20:00 Dubai Jun21
+  {t1:'Spain',       t2:'Saudi Arabia',          s:null,  g:'H', v:'Atlanta',       utc:'2026-06-21T16:00Z'},
+  // Argentina vs Austria: 3pm ET Jun21 = 19:00 UTC → 23:00 Dubai Jun21
+  {t1:'Argentina',   t2:'Austria',               s:null,  g:'J', v:'Dallas',        utc:'2026-06-21T19:00Z'},
+  // Belgium vs Iran: 4pm ET Jun21 = 20:00 UTC → 00:00 Dubai Jun22
+  {t1:'Belgium',     t2:'Iran',                  s:null,  g:'G', v:'Los Angeles',   utc:'2026-06-21T20:00Z'},
+  // Uruguay vs Cape Verde: 7pm ET Jun21 = 23:00 UTC → 03:00 Dubai Jun22
+  {t1:'Uruguay',     t2:'Cape Verde',            s:null,  g:'H', v:'Miami',         utc:'2026-06-21T23:00Z'},
+  // New Zealand vs Egypt: 9pm ET Jun22 = 01:00 UTC Jun23 → 05:00 Dubai Jun23
+  {t1:'New Zealand', t2:'Egypt',                 s:null,  g:'G', v:'Vancouver',     utc:'2026-06-23T01:00Z'},
+  // Portugal vs Uzbekistan: 1pm ET Jun23 = 17:00 UTC → 21:00 Dubai Jun23
+  {t1:'Portugal',    t2:'Uzbekistan',            s:null,  g:'K', v:'Houston',       utc:'2026-06-23T17:00Z'},
+  // England vs Ghana: 4pm ET Jun23 = 20:00 UTC → 00:00 Dubai Jun24
+  {t1:'England',     t2:'Ghana',                 s:null,  g:'L', v:'Boston',        utc:'2026-06-23T20:00Z'},
+  // Panama vs Croatia: 7pm ET Jun23 = 23:00 UTC → 03:00 Dubai Jun24
+  {t1:'Panama',      t2:'Croatia',               s:null,  g:'L', v:'Toronto',       utc:'2026-06-23T23:00Z'},
+  // France vs Iraq: 5pm ET Jun23 = 21:00 UTC → 01:00 Dubai Jun24
+  {t1:'France',      t2:'Iraq',                  s:null,  g:'I', v:'Philadelphia',  utc:'2026-06-23T21:00Z'},
+  // Norway vs Senegal: 8pm ET Jun23 = 00:00 UTC Jun24 → 04:00 Dubai Jun24
+  {t1:'Norway',      t2:'Senegal',               s:null,  g:'I', v:'Toronto',       utc:'2026-06-24T00:00Z'},
+  // Colombia vs DR Congo: 10pm ET Jun23 = 02:00 UTC Jun24 → 06:00 Dubai Jun24
+  {t1:'Colombia',    t2:'DR Congo',              s:null,  g:'K', v:'Zapopan',       utc:'2026-06-24T02:00Z'},
+  // Jordan vs Algeria: midnight ET Jun23/24 = 04:00 UTC Jun24 → 08:00 Dubai Jun24
+  {t1:'Jordan',      t2:'Algeria',               s:null,  g:'J', v:'Santa Clara',   utc:'2026-06-24T04:00Z'},
+  // ── MD3 ───────────────────────────────────────────────────────────────
+  // Switzerland vs Canada: 3pm ET Jun24 = 19:00 UTC → 23:00 Dubai Jun24
+  {t1:'Switzerland', t2:'Canada',                s:null,  g:'B', v:'Vancouver',     utc:'2026-06-24T19:00Z'},
+  // Bosnia vs Qatar: 3pm ET Jun24 = 19:00 UTC → 23:00 Dubai Jun24
+  {t1:'Bosnia & Herzegovina',t2:'Qatar',         s:null,  g:'B', v:'Seattle',       utc:'2026-06-24T19:00Z'},
+  // Scotland vs Brazil: 6pm ET Jun24 = 22:00 UTC → 02:00 Dubai Jun25
+  {t1:'Scotland',    t2:'Brazil',                s:null,  g:'C', v:'Miami',         utc:'2026-06-24T22:00Z'},
+  // Morocco vs Haiti: 6pm ET Jun24 = 22:00 UTC → 02:00 Dubai Jun25
+  {t1:'Morocco',     t2:'Haiti',                 s:null,  g:'C', v:'Atlanta',       utc:'2026-06-24T22:00Z'},
+  // Czechia vs Mexico: 9pm ET Jun24 = 01:00 UTC Jun25 → 05:00 Dubai Jun25
+  {t1:'Czechia',     t2:'Mexico',                s:null,  g:'A', v:'Mexico City',   utc:'2026-06-25T01:00Z'},
+  // S.Africa vs S.Korea: 9pm ET Jun24 = 01:00 UTC Jun25 → 05:00 Dubai Jun25
+  {t1:'South Africa',t2:'South Korea',           s:null,  g:'A', v:'Monterrey',     utc:'2026-06-25T01:00Z'},
+  // Ecuador vs Germany: 4pm ET Jun25 = 20:00 UTC → 00:00 Dubai Jun26
+  {t1:'Ecuador',     t2:'Germany',               s:null,  g:'E', v:'New Jersey',    utc:'2026-06-25T20:00Z'},
+  // Curaçao vs Ivory Coast: 4pm ET Jun25 = 20:00 UTC → 00:00 Dubai Jun26
+  {t1:'Curaçao',     t2:'Ivory Coast',           s:null,  g:'E', v:'Philadelphia',  utc:'2026-06-25T20:00Z'},
+  // Japan vs Sweden: 8pm ET Jun25 = 00:00 UTC Jun26 → 04:00 Dubai Jun26
+  {t1:'Japan',       t2:'Sweden',                s:null,  g:'F', v:'Dallas',        utc:'2026-06-26T00:00Z'},
+  // Tunisia vs Netherlands: 8pm ET Jun25 = 00:00 UTC Jun26 → 04:00 Dubai Jun26
+  {t1:'Tunisia',     t2:'Netherlands',           s:null,  g:'F', v:'Kansas City',   utc:'2026-06-26T00:00Z'},
+  // Spain vs Uruguay: 9pm ET Jun26 = 01:00 UTC Jun27 → 05:00 Dubai Jun27
+  {t1:'Spain',       t2:'Uruguay',               s:null,  g:'H', v:'Guadalajara',   utc:'2026-06-27T01:00Z'},
+  // Cape Verde vs Saudi Arabia: 9pm ET Jun26 = 01:00 UTC Jun27 → 05:00 Dubai Jun27
+  {t1:'Cape Verde',  t2:'Saudi Arabia',          s:null,  g:'H', v:'Houston',       utc:'2026-06-27T01:00Z'},
+  // Egypt vs Iran: 4pm ET Jun27 = 20:00 UTC → 00:00 Dubai Jun28
+  {t1:'Egypt',       t2:'Iran',                  s:null,  g:'G', v:'Seattle',       utc:'2026-06-27T20:00Z'},
+  // New Zealand vs Belgium: 4pm ET Jun27 = 20:00 UTC → 00:00 Dubai Jun28
+  {t1:'New Zealand', t2:'Belgium',               s:null,  g:'G', v:'Vancouver',     utc:'2026-06-27T20:00Z'},
+  // Norway vs France: 4pm ET Jun27 = 20:00 UTC → 00:00 Dubai Jun28 (BST confirms 9pm)
+  {t1:'Norway',      t2:'France',                s:null,  g:'I', v:'Boston',        utc:'2026-06-27T20:00Z'},
+  // Senegal vs Iraq: 4pm ET Jun27 = 20:00 UTC → 00:00 Dubai Jun28
+  {t1:'Senegal',     t2:'Iraq',                  s:null,  g:'I', v:'Toronto',       utc:'2026-06-27T20:00Z'},
+  // Algeria vs Austria: 10pm ET Jun27 = 02:00 UTC Jun28 → 06:00 Dubai Jun28
+  {t1:'Algeria',     t2:'Austria',               s:null,  g:'J', v:'Kansas City',   utc:'2026-06-28T02:00Z'},
+  // Jordan vs Argentina: 10pm ET Jun27 = 02:00 UTC Jun28 → 06:00 Dubai Jun28
+  {t1:'Jordan',      t2:'Argentina',             s:null,  g:'J', v:'Dallas',        utc:'2026-06-28T02:00Z'},
+  // Panama vs England: 5pm ET Jun27 = 21:00 UTC → 01:00 Dubai Jun28
+  {t1:'Panama',      t2:'England',               s:null,  g:'L', v:'New Jersey',    utc:'2026-06-27T21:00Z'},
+  // Croatia vs Ghana: 5pm ET Jun27 = 21:00 UTC → 01:00 Dubai Jun28
+  {t1:'Croatia',     t2:'Ghana',                 s:null,  g:'L', v:'Philadelphia',  utc:'2026-06-27T21:00Z'},
+  // Colombia vs Portugal: 7:30pm ET Jun27 = 23:30 UTC → 03:30 Dubai Jun28
+  {t1:'Colombia',    t2:'Portugal',              s:null,  g:'K', v:'Miami',         utc:'2026-06-27T23:30Z'},
+  // DR Congo vs Uzbekistan: 7:30pm ET Jun27 = 23:30 UTC → 03:30 Dubai Jun28
+  {t1:'DR Congo',    t2:'Uzbekistan',            s:null,  g:'K', v:'Atlanta',       utc:'2026-06-27T23:30Z'},
+];
+
+// ══════════════════════════════════════════════════════════
+// TIME HELPERS
+// ══════════════════════════════════════════════════════════
+const DXB='Asia/Dubai';
+const now=()=>new Date();
+const fmtT=d=>d.toLocaleTimeString('en',{timeZone:DXB,hour:'2-digit',minute:'2-digit',hour12:false});
+const fmtD=d=>d.toLocaleDateString('en',{timeZone:DXB,weekday:'short',month:'short',day:'numeric'});
+
+function toDt(utc){ return new Date(utc); }
+
+function isToday(d){
+  return d.toLocaleDateString('en',{timeZone:DXB})===now().toLocaleDateString('en',{timeZone:DXB});
+}
+function isLiveNow(d){ const e=new Date(d.getTime()+115*60000); return now()>d&&now()<e; }
+
+// ══════════════════════════════════════════════════════════
+// openfootball time string → UTC Date
+// e.g. date="2026-06-11" time="13:00 UTC-6"
+// ══════════════════════════════════════════════════════════
+function ofToDt(dateStr, timeStr){
+  const m=timeStr.match(/(\d+):(\d+)\s+UTC([+-]\d+)/);
+  if(!m) return null;
+  const off=parseInt(m[3]);
+  const utcH=parseInt(m[1])-off;
+  const d=new Date(dateStr+'T00:00:00Z');
+  d.setUTCHours(utcH,parseInt(m[2]),0,0);
+  return d;
+}
+
+// ══════════════════════════════════════════════════════════
+// MERGE openfootball results into SEED
+// ══════════════════════════════════════════════════════════
+function mergeOF(ofMatches){
+  const idx={};
+  ofMatches.forEach(m=>{
+    if(!m.score?.ft) return;
+    const key=[canon(m.team1),canon(m.team2)].sort().join('|');
+    idx[key]=[m.score.ft[0],m.score.ft[1]];
+  });
+  return SEED.map(k=>{
+    const key=[k.t1,k.t2].sort().join('|');
+    if(idx[key]) return {...k,s:idx[key]};
+    return k;
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// STANDINGS CALCULATOR
+// ══════════════════════════════════════════════════════════
+function calcStandings(matches){
+  const st={};
+  for(const [g,teams] of Object.entries(GROUPS)){
+    st[g]={};
+    teams.forEach(t=>st[g][t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
+  }
+  matches.forEach(m=>{
+    if(!m.s) return;
+    const {t1,t2,s:[g1,g2],g}=m;
+    if(!st[g]) return;
+    const add=(t,gf,ga,w,d,l)=>{
+      if(!st[g][t]) st[g][t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+      const s=st[g][t];
+      s.p++;s.gf+=gf;s.ga+=ga;s.w+=w;s.d+=d;s.l+=l;s.pts+=w?3:d?1:0;
+    };
+    if(g1>g2)     {add(t1,g1,g2,1,0,0);add(t2,g2,g1,0,0,1);}
+    else if(g1<g2){add(t1,g1,g2,0,0,1);add(t2,g2,g1,1,0,0);}
+    else          {add(t1,g1,g2,0,1,0);add(t2,g2,g1,0,1,0);}
+  });
+  const out={};
+  for(const [g,teams] of Object.entries(st)){
+    out[g]=Object.entries(teams)
+      .sort(([,a],[,b])=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf)
+      .map(([name,s])=>({name,...s,gd:s.gf-s.ga}));
+  }
+  return out;
+}
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let MATCHES=SEED.map(m=>({...m,dt:toDt(m.utc)}));
+let STANDINGS=calcStandings(MATCHES);
+
+// ══════════════════════════════════════════════════════════
+// RENDER TODAY
+// ══════════════════════════════════════════════════════════
+function renderToday(){
+  const n=now();
+  const todayM=MATCHES.filter(m=>isToday(m.dt)).sort((a,b)=>a.dt-b.dt);
+  const recentM=MATCHES.filter(m=>m.s&&!isToday(m.dt)&&(n-m.dt)<40*3600000).sort((a,b)=>b.dt-a.dt).slice(0,6);
+  const egyptNext=MATCHES.find(m=>(m.t1==='Egypt'||m.t2==='Egypt')&&!m.s&&m.dt>n);
+  const upcomingM=MATCHES.filter(m=>!m.s&&!isToday(m.dt)&&m.dt>n).slice(0,5);
+
+  const dStr=n.toLocaleDateString('en',{timeZone:DXB,weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let h=`<div class="note">🕐 Dubai Time (UTC+4 = ET+8) · ${dStr}</div>`;
+
+  if(!todayM.length){
+    h+=`<div class="today-hd">No matches scheduled today</div>`;
+  } else {
+    h+=`<div class="today-hd">Today's Matches</div>`;
+    todayM.forEach(m=>{
+      const done=!!m.s,live=!m.s&&isLiveNow(m.dt);
+      const eg=m.t1==='Egypt'||m.t2==='Egypt';
+      h+=`<div class="mc ${eg?'eg':''} ${live?'live':''} ${done?'done':''}">
+        <div class="mc-row">
+          <span class="mc-time ${done?'t-done':live?'t-live':''}">${fmtT(m.dt)}</span>
+          <span class="mc-teams">${fe(m.t1)} vs ${fe(m.t2)}</span>
+          ${m.s?`<span class="mc-score">${m.s[0]}–${m.s[1]}</span>`:''}
+          ${live?`<span class="tag t-lv">🔴 Live</span>`:''}
+        </div>
+        <div class="mc-foot">
+          <span class="tag t-g">Group ${m.g}</span>
+          ${done?`<span class="tag t-ok">✅ FT</span>`:!live?`<span class="tag t-nx">Upcoming</span>`:''}
+          <span>${m.v}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(recentM.length){
+    h+=`<div class="ibox" style="margin-top:12px"><div class="ilbl">Recent Results</div><div class="irow">`;
+    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · Group ${m.g} · ${m.v}<br>`;});
+    h+=`</div></div>`;
+  }
+  if(egyptNext){
+    h+=`<div class="ibox gold" style="margin-top:8px">
+      <div class="ilbl g">🇪🇬 Egypt's Next Match</div>
+      <div class="irow"><strong>${fe(egyptNext.t1)} vs ${fe(egyptNext.t2)}</strong><br>
+      <span style="color:var(--gold);font-weight:700">${fmtD(egyptNext.dt)} · ${fmtT(egyptNext.dt)} Dubai</span> · ${egyptNext.v}</div>
+    </div>`;
+  }
+  if(upcomingM.length){
+    h+=`<div class="ibox" style="margin-top:8px"><div class="ilbl">Coming Up</div><div class="irow">`;
+    upcomingM.forEach(m=>{h+=`<span style="color:var(--dim)">●</span> <strong>${fe(m.t1)} vs ${fe(m.t2)}</strong> · <span style="color:var(--gold)">${fmtT(m.dt)}</span> ${fmtD(m.dt)} · ${m.v}<br>`;});
+    h+=`</div></div>`;
+  }
+  document.getElementById('panel-today').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER GROUPS
+// ══════════════════════════════════════════════════════════
+function renderGroups(){
+  let h=`<div class="note">🕐 Dubai Time · Standings calculated from results</div><div class="gg">`;
+  for(const [g,rows] of Object.entries(STANDINGS)){
+    const isEg=g==='G';
+    const grpM=MATCHES.filter(m=>m.g===g).sort((a,b)=>a.dt-b.dt);
+    h+=`<div class="gc ${isEg?'eg':''}">
+      <div class="gc-hd"><span class="gc-lbl">Group ${g}</span>${isEg?`<span class="eg-badge">🇪🇬 Egypt</span>`:''}</div>
+      <table class="st"><thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+    rows.forEach((r,i)=>{
+      const cls=i<2?'q1':i===2?'q3':'el';
+      h+=`<tr class="${cls}${r.name==='Egypt'?' egr':''}">
+        <td>${f(r.name)} ${r.name}</td>
+        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>
+        <td>${r.gd>=0?'+':''}${r.gd}</td><td class="pts">${r.pts}</td>
+      </tr>`;
+    });
+    h+=`</tbody></table><div class="gc-ms">`;
+    grpM.forEach(m=>{
+      const eg=m.t1==='Egypt'||m.t2==='Egypt';
+      h+=`<div class="mi ${eg?'egm':''}">
+        <div class="mi-top"><span class="mi-t">${fe(m.t1)} vs ${fe(m.t2)}</span>${m.s?`<span class="mi-s">${m.s[0]}–${m.s[1]}</span>`:''}</div>
+        <div class="mi-bot"><span class="mi-dxb">${fmtT(m.dt)}</span> · ${fmtD(m.dt)} · ${m.v}</div>
+      </div>`;
+    });
+    h+=`</div></div>`;
+  }
+  h+=`</div><div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Top 2 — auto qualify</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--gold)"></div>3rd — best 8 qualify</div>
+  </div>`;
+  document.getElementById('panel-groups').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER SCHEDULE
+// ══════════════════════════════════════════════════════════
+function renderSchedule(){
+  const n=now();
+  let h=`<div class="note">🕐 Dubai Time (UTC+4) · ⭐ = Egypt · Dimmed = finished</div>
+  <div class="sb"><div class="sb-ttl"><span class="sp sp-g">Group Stage</span> Jun 11 – Jun 28</div>
+  <div class="sw"><table class="ft">
+    <thead><tr><th>#</th><th>Dubai Date · Time</th><th>Match</th><th>Grp</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
+
+  MATCHES.forEach((m,i)=>{
+    const done=!!m.s,live=!m.s&&isLiveNow(m.dt);
+    const eg=m.t1==='Egypt'||m.t2==='Egypt';
+    const today=isToday(m.dt);
+    h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}">
+      <td class="tn">${i+1}${eg?'⭐':''}</td>
+      <td class="tdt">${fmtD(m.dt)} · <span class="ttime">${fmtT(m.dt)}</span>
+        ${today?`<span style="font-size:9px;color:var(--gold);margin-left:4px;font-weight:700">TODAY</span>`:''}</td>
+      <td class="tm2">${fe(m.t1)} vs ${fe(m.t2)}</td>
+      <td><span class="gt">${m.g}</span></td>
+      <td class="tv">${m.v}</td>
+      <td class="${m.s?'tsc':'tv'}">${m.s?`${m.s[0]}–${m.s[1]}${done?' ✅':' 🔴'}`:live?'🔴 Live':'—'}</td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div></div>`;
+  document.getElementById('panel-sched').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER KNOCKOUT
+// ══════════════════════════════════════════════════════════
+function renderKO(){
+  document.getElementById('panel-ko').innerHTML=`
+  <div class="note">🕐 Dubai Time (UTC+4 = ET+8)</div>
+  <div class="fmt-box">
+    <h3>Tournament Format</h3>
+    <p>Top 2 from each group + 8 best 3rd-place teams = 32 advance to new <strong>Round of 32</strong> → Round of 16 → QF → SF → Final.<br>
+    🏆 <strong>Final: Sun Jul 19 · 23:00 Dubai (3pm ET)</strong> · MetLife Stadium, New Jersey</p>
+  </div>
+  <div class="sb"><div class="sb-ttl"><span class="sp sp-k">Knockout Dates</span></div>
+  <div class="sw"><table class="ft"><thead><tr><th>Stage</th><th>Dubai Dates</th><th>Notes</th></tr></thead><tbody>
+    <tr><td class="tm2">Round of 32</td><td class="tdt">Jun 28 – Jul 3</td><td class="tv">16 matches</td></tr>
+    <tr><td class="tm2">Round of 16</td><td class="tdt">Jul 4 – 7</td><td class="tv">8 matches</td></tr>
+    <tr><td class="tm2">Quarter-finals</td><td class="tdt">Jul 9 – 11</td><td class="tv">Boston · LA · Miami · KC</td></tr>
+    <tr><td class="tm2">Semi-finals</td><td class="tdt">Jul 14 – 15</td><td class="tv">Dallas · Atlanta</td></tr>
+    <tr><td class="tm2">3rd Place</td><td class="tdt">Sat Jul 18 · 21:00 DXB</td><td class="tv">Miami (5pm ET)</td></tr>
+    <tr class="fr"><td class="tm2" style="color:var(--gold);font-weight:700">🏆 Final</td><td class="tdt" style="color:var(--gold)">Sun Jul 19 · 23:00 DXB</td><td class="tv" style="color:var(--gold)">MetLife, New Jersey (3pm ET)</td></tr>
+  </tbody></table></div></div>
+  <div class="sb"><div class="sb-ttl" style="color:var(--gold)">🇪🇬 Egypt's Knockout Path</div>
+  <div class="sw"><table class="ft"><thead><tr><th>Round</th><th>If 1st Grp G</th><th>If 2nd Grp G</th></tr></thead><tbody>
+    <tr class="er"><td class="tm2">Round of 32</td><td class="tv">~Mon Jun 30 · 00:00 Dubai · vs Best 3rd · Seattle</td><td class="tv">~Fri Jul 4 · 00:00 Dubai · vs 2nd Grp H · San Francisco</td></tr>
+    <tr><td class="tm2">R16 → Final</td><td colspan="2" class="tv">Bracket determined by R32 results</td></tr>
+    <tr class="fr"><td class="tm2" style="color:var(--gold)">🏆 Final</td><td colspan="2" class="tv" style="color:var(--gold)">Jul 19 · MetLife 🤞🇪🇬</td></tr>
+  </tbody></table></div></div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════════════════
+function renderAll(){
+  renderToday();
+  renderGroups();
+  renderSchedule();
+  renderKO();
+}
+
+// ══════════════════════════════════════════════════════════
+// LOAD DATA FROM openfootball
+// ══════════════════════════════════════════════════════════
+const CACHE_KEY='wc26_of2';
+const CACHE_TTL=15*60*1000; // 15 min
+
+async function loadData(force=false){
+  const btn=document.getElementById('rfBtn');
+  const ico=document.getElementById('rfIco');
+  const txt=document.getElementById('sbarTxt');
+
+  // Render seed data immediately so page isn't blank
+  renderAll();
+  btn.disabled=true;
+  ico.outerHTML=`<div class="btn-spin" id="rfIco"></div>`;
+  txt.innerHTML='Checking for score updates…';
+  txt.className='sbar-txt';
+
+  // Check cache first
+  if(!force){
+    try{
+      const raw=localStorage.getItem(CACHE_KEY);
+      if(raw){
+        const {ts,data}=JSON.parse(raw);
+        if(Date.now()-ts<CACHE_TTL){
+          MATCHES=mergeOF(data).map(m=>({...m,dt:toDt(m.utc)}));
+          STANDINGS=calcStandings(MATCHES);
+          renderAll();
+          const age=Math.round((Date.now()-ts)/60000);
+          const played=MATCHES.filter(m=>m.s).length;
+          txt.innerHTML=`<b>✅ ${played} results</b> · cached ${age}m ago`;
+          btn.disabled=false;
+          document.getElementById('rfIco').outerHTML=`<span id="rfIco">↻</span>`;
+          return;
+        }
+      }
+    }catch(e){}
+  }
+
+  try{
+    const res=await fetch(OF_URL+'?v='+Date.now());
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    const ofMatches=json.matches||[];
+    localStorage.setItem(CACHE_KEY,JSON.stringify({ts:Date.now(),data:ofMatches}));
+    MATCHES=mergeOF(ofMatches).map(m=>({...m,dt:toDt(m.utc)}));
+    STANDINGS=calcStandings(MATCHES);
+    renderAll();
+    const played=MATCHES.filter(m=>m.s).length;
+    const t=fmtT(new Date());
+    txt.innerHTML=`<b>✅ ${played} results loaded</b> · updated ${t} Dubai`;
+  }catch(e){
+    txt.innerHTML=`<b>⚠ Could not reach data source</b> · showing known results`;
+    txt.className='sbar-txt err';
+    // Still showing seed data which is already rendered
+  }
+
+  btn.disabled=false;
+  document.getElementById('rfIco').outerHTML=`<span id="rfIco">↻</span>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// NAV + CLOCK
+// ══════════════════════════════════════════════════════════
+function go(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('panel-'+name).classList.add('on');
+  el.classList.add('on');
+}
+
+function tick(){
+  const el=document.getElementById('clk');
+  if(el) el.textContent=new Date().toLocaleTimeString('en',{timeZone:DXB,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})+' DXB';
+}
+
+// Boot
+setInterval(tick,1000); tick();
+loadData();
+setInterval(()=>loadData(),15*60*1000);
+</script>
+</body>
+</html>
