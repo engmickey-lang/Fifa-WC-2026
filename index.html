@@ -27,7 +27,9 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .hdr-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:10px;}
 .pill{background:rgba(255,255,255,.05);border:1px solid var(--bdr2);border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600;color:var(--gr);}
 .pill.g{background:var(--gbg);border-color:var(--gbdr);color:var(--gold);}
-.sbar{background:#0b0d17;border-bottom:1px solid var(--bdr);padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
+/* SBAR & TICKER */
+.sbar{background:#0b0d17;border-bottom:1px solid var(--bdr);padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:44px;}
 .rfbtn{display:flex;align-items:center;gap:6px;background:var(--green);border:none;border-radius:7px;padding:6px 14px;font-family:'Inter';font-size:11px;font-weight:700;color:#000;cursor:pointer;text-transform:uppercase;letter-spacing:.6px;transition:filter .2s;}
 .rfbtn:hover{filter:brightness(1.1);}
 .rfbtn:disabled{opacity:.45;cursor:not-allowed;}
@@ -36,12 +38,52 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .sbar-txt{font-size:11px;color:var(--dim);}
 .sbar-txt b{color:var(--green);}
 .sbar-txt.err b{color:var(--red);}
+
+/* GLOBAL LIVE TICKER */
+.live-ticker {
+  display: none;
+  margin: 0 auto;
+  background: var(--rdbg);
+  border: 1px solid rgba(255,48,48,.2);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--w);
+  align-items: center;
+  gap: 12px;
+}
+.live-ticker.active {
+  display: flex;
+}
+.ticker-match {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ticker-dot {
+  color: var(--live);
+  font-size: 10px;
+  animation: blink 1.2s ease-in-out infinite;
+}
+.ticker-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--gold2);
+  font-size: 14px;
+}
+.ticker-div {
+  color: rgba(255,255,255,0.1);
+  font-size: 14px;
+}
+
 .sbar-r{margin-left:auto;display:flex;align-items:center;gap:14px;}
 .lnk{font-size:11px;font-weight:600;text-decoration:none;}
 .lnk.live-lnk{color:var(--live);}
 .lnk.live-lnk::before{content:'● ';animation:blink 1.2s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 .clk{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);}
+
 .tabs{display:flex;overflow-x:auto;scrollbar-width:none;background:#0b0d17;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:30;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Inter';text-transform:uppercase;}
@@ -178,6 +220,9 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   font-style: normal;
 }
 
+@media(max-width:768px){
+  .live-ticker { width: 100%; order: 3; justify-content: center; }
+}
 @media(max-width:560px){.tv{display:none;}.gg{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -200,6 +245,9 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
     <span id="rfIco">↻</span> Refresh
   </button>
   <span class="sbar-txt" id="sbarTxt">Loading…</span>
+  
+  <div id="liveTicker" class="live-ticker"></div>
+
   <div class="sbar-r">
     <span class="clk" id="clk"></span>
     <a class="lnk live-lnk" href="https://www.sofascore.com/football/tournament/world/world-championship/16" target="_blank">Live Scores</a>
@@ -287,13 +335,8 @@ const fmtD=d=>d.toLocaleDateString('en',{timeZone:DXB,weekday:'short',month:'sho
 
 function toDt(utc){ return new Date(utc); }
 function isToday(d){ return d.toLocaleDateString('en',{timeZone:DXB})===now().toLocaleDateString('en',{timeZone:DXB}); }
-
-// OPTIMISTIC UI: Combines API data with local clock heuristic
 function isLiveNow(status, dt){ 
-    // 1. If API explicitly says it is live, trust it.
     if(["1H", "2H", "HT", "ET", "P", "BT", "LIVE"].includes(status)) return true;
-    
-    // 2. Fallback: If API lags, check if local clock is past kickoff (up to ~115 mins)
     const n = now();
     const e = new Date(dt.getTime() + 115*60000); 
     return (n > dt && n < e) && status !== "FT" && status !== "CANCELED";
@@ -337,6 +380,33 @@ function calcStandings(matches){
 let MATCHES=[];
 let STANDINGS={};
 
+function renderTicker(){
+  const ticker = document.getElementById('liveTicker');
+  const liveM = MATCHES.filter(m => {
+    const done = m.status === "FT" || m.status === "AET" || m.status === "PEN" || m.status === "CANCELED";
+    return !done && isLiveNow(m.status, m.dt);
+  });
+
+  if(liveM.length > 0){
+    let h = '';
+    liveM.forEach((m, idx) => {
+      const s = m.s ? `${m.s[0]}–${m.s[1]}` : `0–0`;
+      if(idx > 0) h += `<span class="ticker-div">|</span>`;
+      h += `<div class="ticker-match">
+              <span class="ticker-dot">●</span> 
+              <span>${f(m.t1)} ${canon(m.t1)}</span>
+              <span class="ticker-score">${s}</span>
+              <span>${canon(m.t2)} ${f(m.t2)}</span>
+            </div>`;
+    });
+    ticker.innerHTML = h;
+    ticker.classList.add('active');
+  } else {
+    ticker.innerHTML = '';
+    ticker.classList.remove('active');
+  }
+}
+
 function renderToday(){
   const n=now();
   const todayM=MATCHES.filter(m=>isToday(m.dt)).sort((a,b)=>a.dt-b.dt);
@@ -355,8 +425,6 @@ function renderToday(){
       const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
       const live = !done && isLiveNow(m.status, m.dt);
       const eg = canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
-      
-      // Inject placeholder 0-0 if live heuristically but API hasn't sent scores
       const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
 
       h+=`<div class="mc ${eg?'eg':''} ${live?'live':''} ${done?'done':''}">
@@ -479,10 +547,12 @@ function renderAll(){
     document.getElementById('panel-today').innerHTML = emptyHtml;
     document.getElementById('panel-groups').innerHTML = emptyHtml;
     document.getElementById('panel-sched').innerHTML = emptyHtml;
+    document.getElementById('liveTicker').style.display = 'none';
     renderKO();
     return;
   }
   
+  renderTicker();
   renderToday();
   renderGroups();
   renderSchedule();
