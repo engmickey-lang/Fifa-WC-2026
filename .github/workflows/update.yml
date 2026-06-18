@@ -21,8 +21,6 @@ jobs:
         run: pip install requests
 
       - name: Run our Python Script
-        env:
-          API_SPORTS_KEY: ${{ secrets.API_SPORTS_KEY }}
         run: python fetch_scores.py
 
       - name: Save the new JSON file to the repository
