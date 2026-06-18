@@ -279,11 +279,8 @@
     "t2": "Bosnia-Herzegovina",
     "utc": "2026-06-18T19:00Z",
     "v": "Inglewood, California",
-    "s": [
-      0,
-      0
-    ],
-    "status": "LIVE"
+    "s": null,
+    "status": "NS"
   },
   {
     "t1": "Canada",
