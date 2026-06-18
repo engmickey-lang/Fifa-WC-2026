@@ -287,9 +287,16 @@ const fmtD=d=>d.toLocaleDateString('en',{timeZone:DXB,weekday:'short',month:'sho
 
 function toDt(utc){ return new Date(utc); }
 function isToday(d){ return d.toLocaleDateString('en',{timeZone:DXB})===now().toLocaleDateString('en',{timeZone:DXB}); }
-function isLiveNow(status){ 
-    const liveStatuses = ["1H", "2H", "HT", "ET", "P", "BT", "LIVE"];
-    return liveStatuses.includes(status);
+
+// OPTIMISTIC UI: Combines API data with local clock heuristic
+function isLiveNow(status, dt){ 
+    // 1. If API explicitly says it is live, trust it.
+    if(["1H", "2H", "HT", "ET", "P", "BT", "LIVE"].includes(status)) return true;
+    
+    // 2. Fallback: If API lags, check if local clock is past kickoff (up to ~115 mins)
+    const n = now();
+    const e = new Date(dt.getTime() + 115*60000); 
+    return (n > dt && n < e) && status !== "FT" && status !== "CANCELED";
 }
 
 // ══════════════════════════════════════════════════════════
@@ -345,15 +352,18 @@ function renderToday(){
   } else {
     h+=`<div class="today-hd">Today's Matches</div>`;
     todayM.forEach(m=>{
-      const done= m.status === "FT" || m.status === "AET" || m.status === "PEN";
-      const live= isLiveNow(m.status);
-      const eg=canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+      const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
+      const live = !done && isLiveNow(m.status, m.dt);
+      const eg = canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+      
+      // Inject placeholder 0-0 if live heuristically but API hasn't sent scores
+      const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+
       h+=`<div class="mc ${eg?'eg':''} ${live?'live':''} ${done?'done':''}">
         <div class="mc-row">
-          <span class="mc-time ${done?'t-done':live?'t-live':''}">${live ? m.status : fmtT(m.dt)}</span>
+          <span class="mc-time ${done?'t-done':live?'t-live':''}">${live ? '🔴 LIVE' : fmtT(m.dt)}</span>
           <span class="mc-teams">${fe(m.t1)} vs ${fe(m.t2)}</span>
-          ${m.s?`<span class="mc-score">${m.s[0]}–${m.s[1]}</span>`:''}
-          ${live?`<span class="tag t-lv">🔴 Live</span>`:''}
+          ${scoreText ? `<span class="mc-score">${scoreText}</span>` : ''}
         </div>
         <div class="mc-foot">
           <span class="tag t-g">Group ${m.g}</span>
@@ -402,9 +412,12 @@ function renderGroups(){
     });
     h+=`</tbody></table><div class="gc-ms">`;
     grpM.forEach(m=>{
-      const eg=canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+      const eg = canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+      const live = isLiveNow(m.status, m.dt) && !m.s; 
+      const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+
       h+=`<div class="mi ${eg?'egm':''}">
-        <div class="mi-top"><span class="mi-t">${fe(m.t1)} vs ${fe(m.t2)}</span>${m.s?`<span class="mi-s">${m.s[0]}–${m.s[1]}</span>`:''}</div>
+        <div class="mi-top"><span class="mi-t">${fe(m.t1)} vs ${fe(m.t2)}</span>${scoreText?`<span class="mi-s">${scoreText}</span>`:''}</div>
         <div class="mi-bot"><span class="mi-dxb">${fmtT(m.dt)}</span> · ${fmtD(m.dt)} · ${m.v}</div>
       </div>`;
     });
@@ -424,10 +437,13 @@ function renderSchedule(){
     <thead><tr><th>#</th><th>Dubai Date · Time</th><th>Match</th><th>Grp</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
 
   MATCHES.forEach((m,i)=>{
-    const done= m.status === "FT" || m.status === "AET" || m.status === "PEN";
-    const live= isLiveNow(m.status);
-    const eg=canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
-    const today=isToday(m.dt);
+    const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
+    const live = !done && isLiveNow(m.status, m.dt);
+    const eg = canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+    const today = isToday(m.dt);
+    
+    const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+
     h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}">
       <td class="tn">${i+1}${eg?'⭐':''}</td>
       <td class="tdt">${fmtD(m.dt)} · <span class="ttime">${fmtT(m.dt)}</span>
@@ -435,7 +451,7 @@ function renderSchedule(){
       <td class="tm2">${fe(m.t1)} vs ${fe(m.t2)}</td>
       <td><span class="gt">${m.g}</span></td>
       <td class="tv">${m.v}</td>
-      <td class="${m.s?'tsc':'tv'}">${m.s?`${m.s[0]}–${m.s[1]}${done?' ✅':` 🔴 ${m.status}`}`:live?`🔴 ${m.status}`:'—'}</td>
+      <td class="${scoreText?'tsc':'tv'}">${scoreText ? `${scoreText}${done?' ✅':` 🔴`}`: (live ? `0–0 🔴` : '—')}</td>
     </tr>`;
   });
   h+=`</tbody></table></div></div>`;
