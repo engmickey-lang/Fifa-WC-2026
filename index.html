@@ -21,7 +21,14 @@ html{scroll-behavior:smooth;}
 body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
 .hdr{background:linear-gradient(180deg,#0d1020 0%,var(--bg) 100%);border-bottom:1px solid var(--bdr2);padding:20px 16px 14px;text-align:center;position:relative;}
 .hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.hdr-icon{font-size:28px;display:block;margin-bottom:4px;}
+.hdr-icon {
+  display: block;
+  margin: 0 auto 8px;
+  height: 60px; /* You can change this number to make the cup bigger or smaller */
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(244,196,48,0.4)); /* Adds a slight golden glow to match your title */
+}
 .hdr h1{font-family:'Bebas Neue';font-size:clamp(24px,6vw,48px);letter-spacing:4px;color:var(--gold);text-shadow:0 0 32px rgba(244,196,48,.3);line-height:1;}
 .hdr-sub{font-size:10px;font-weight:600;letter-spacing:3px;color:var(--gr);text-transform:uppercase;margin-top:3px;}
 .hdr-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-top:10px;}
@@ -229,7 +236,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 <body>
 
 <div class="hdr">
-  <span class="hdr-icon">🏆</span>
+<img class="hdr-icon" src="trophy.png" alt="World Cup Trophy">
   <h1>FIFA World Cup 2026</h1>
   <div class="hdr-sub">Canada · Mexico · United States</div>
   <div class="hdr-pills">
