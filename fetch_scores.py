@@ -1,40 +1,58 @@
-import os       # Lets us read the secret key from GitHub
-import json     # Lets us save data in the .json format your HTML needs
-import requests # The library that goes to the internet and fetches data
+import json
+import requests
 
-# 1. Grab your secret key
-API_KEY = os.environ.get("API_SPORTS_KEY")
-
-# 2. Set the exact URL for the FIFA World Cup (League 1, Season 2026)
-URL = "https://v3.football.api-sports.io/fixtures?league=1&season=2026"
-
-# 3. Present our "ID badge" (API key) to the server
-HEADERS = {"x-apisports-key": API_KEY}
+# We ask ESPN for all matches between the start and end dates of the 2026 tournament
+URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=200"
 
 def main():
-    # 4. Make the request to API-Sports
-    response = requests.get(URL, headers=HEADERS)
+    print("Fetching World Cup data from ESPN...")
+    response = requests.get(URL)
     data = response.json()
     
     matches = []
     
-    # 5. Loop through every match they give us
-    for item in data.get("response", []):
-        fixture = item["fixture"]
-        teams = item["teams"]
-        goals = item["goals"]
+    for event in data.get("events", []):
+        competition = event["competitions"][0]
+        competitors = competition["competitors"]
         
-        # Check if the match is finished, live, or hasn't started (NS)
-        status = fixture["status"]["short"]
+        # ESPN gives us home/away teams
+        home_team = next((c for c in competitors if c["homeAway"] == "home"), competitors[0])
+        away_team = next((c for c in competitors if c["homeAway"] == "away"), competitors[1])
+        
+        status_name = event["status"]["type"]["name"]
+        
         score = None
+        status = "NS"
         
-        # If the match has started (Not 'NS'), record the goals
-        if status != "NS":
-            home_g = goals["home"] if goals["home"] is not None else 0
-            away_g = goals["away"] if goals["away"] is not None else 0
-            score = [home_g, away_g]
+        # Translate ESPN's status to our simple UI status
+        if status_name in ["STATUS_FINAL", "STATUS_FULL_TIME"]:
+            status = "FT"
+            score = [int(home_team.get("score", 0)), int(away_team.get("score", 0))]
+        elif status_name in ["STATUS_IN_PROGRESS", "STATUS_HALFTIME"]:
+            status = "LIVE"
+            score = [int(home_team.get("score", 0)), int(away_team.get("score", 0))]
+            
+        # Extract the venue city safely
+        venue = "TBD"
+        if "venue" in competition and "address" in competition["venue"]:
+            venue = competition["venue"]["address"].get("city", "TBD")
+            
+        matches.append({
+            "t1": home_team["team"]["name"],
+            "t2": away_team["team"]["name"],
+            "utc": event["date"],
+            "v": venue,
+            "s": score,
+            "status": status
+        })
+        
+    with open("live_scores.json", "w") as f:
+        json.dump(matches, f, indent=2)
+        
+    print(f"Successfully saved {len(matches)} matches!")
 
-        # 6. Save only the clean, essential data we care about
+if __name__ == "__main__":
+    main()        # 6. Save only the clean, essential data we care about
         matches.append({
             "t1": teams["home"]["name"],
             "t2": teams["away"]["name"],
