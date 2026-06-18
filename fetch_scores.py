@@ -2,15 +2,19 @@ import json
 import requests
 import sys
 
-# 1. The calendar URL (gives us all 104 matches, but heavily cached)
 SCHEDULE_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=200"
-
-# 2. The live URL (gives us ONLY today's matches, but updates instantly)
 LIVE_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
+
+# The disguise: makes ESPN think we are a standard web browser
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json"
+}
 
 def fetch_data(url):
     try:
-        response = requests.get(url, timeout=10)
+        # timeout=15 ensures the script physically cannot hang for more than 15 seconds
+        response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
         return response.json().get("events", [])
     except Exception as e:
@@ -24,7 +28,6 @@ def main():
     print("Fetching LIVE updates...")
     live_events = fetch_data(LIVE_URL)
     
-    # Create a dictionary of today's live events so we can easily find them
     live_dict = { event["id"]: event for event in live_events }
 
     matches = []
@@ -32,7 +35,6 @@ def main():
     for event in schedule_events:
         event_id = event.get("id")
         
-        # THE MAGIC: If this match is happening today, swap the stale calendar data with the fresh live data!
         if event_id in live_dict:
             event = live_dict[event_id]
             
