@@ -1,0 +1,33 @@
+name: Update Live Scores
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # This means "Run every 10 minutes"
+  workflow_dispatch:       # This gives you a button to run it manually
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install internet request library
+        run: pip install requests
+
+      - name: Run our Python Script
+        env:
+          API_SPORTS_KEY: ${{ secrets.API_SPORTS_KEY }}
+        run: python fetch_scores.py
+
+      - name: Save the new JSON file to the repository
+        run: |
+          git config --global user.name "GitHub Action Robot"
+          git config --global user.email "action@github.com"
+          git add live_scores.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update live scores" && git push)
