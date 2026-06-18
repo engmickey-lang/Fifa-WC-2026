@@ -1,11 +1,11 @@
 import json
 import requests
 import sys
+import time  # <-- Added for Cache-Busting
 
 SCHEDULE_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=200"
-LIVE_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
+LIVE_URL_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
 
-# The disguise: makes ESPN think we are a standard web browser
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "application/json"
@@ -13,7 +13,6 @@ HEADERS = {
 
 def fetch_data(url):
     try:
-        # timeout=15 ensures the script physically cannot hang for more than 15 seconds
         response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
         return response.json().get("events", [])
@@ -25,8 +24,12 @@ def main():
     print("Fetching World Cup schedule...")
     schedule_events = fetch_data(SCHEDULE_URL)
     
-    print("Fetching LIVE updates...")
-    live_events = fetch_data(LIVE_URL)
+    # THE MAGIC: Append the current UNIX timestamp to the URL to bypass ESPN's cache
+    current_timestamp = int(time.time())
+    live_url = f"{LIVE_URL_BASE}?_={current_timestamp}"
+    
+    print(f"Fetching LIVE updates (Cache-Busted: {live_url})...")
+    live_events = fetch_data(live_url)
     
     live_dict = { event["id"]: event for event in live_events }
 
