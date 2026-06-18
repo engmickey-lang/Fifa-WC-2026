@@ -92,4 +92,464 @@ table.st tr.egr td{color:var(--gold);}
 .pts{font-family:'JetBrains Mono';font-weight:700;color:var(--w)!important;}
 table.st tr.egr .pts{color:var(--gold)!important;}
 .q1{border-left:3px solid var(--green);}
-.q3{border
+.q3{border-left:3px solid var(--gold);}
+.el{border-left:3px solid transparent;}
+.gc-ms{border-top:1px solid var(--bdr);}
+.mi{padding:6px 12px;border-bottom:1px solid rgba(255,255,255,.04);}
+.mi:last-child{border-bottom:none;}
+.mi.egm{background:rgba(244,196,48,.05);border-left:2px solid var(--gold);}
+.mi-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.mi-t{font-size:12px;font-weight:600;color:var(--w);}
+.mi-s{font-family:'JetBrains Mono';font-size:12px;font-weight:600;color:var(--gold2);}
+.mi-bot{font-size:10px;color:var(--dim);margin-top:2px;}
+.mi-dxb{color:var(--gold);font-weight:700;}
+.sb{margin-bottom:22px;}
+.sb-ttl{font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;color:var(--w);padding:8px 0 6px;border-bottom:1px solid var(--bdr);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.sp{font-size:9px;font-family:'Inter';font-weight:700;letter-spacing:1.2px;padding:2px 8px;border-radius:4px;text-transform:uppercase;}
+.sp-g{background:var(--blbg);color:var(--blue);}
+.sp-k{background:var(--rdbg);color:var(--red);}
+.sp-f{background:var(--gbg);color:var(--gold);}
+.sw{overflow-x:auto;}
+table.ft{width:100%;border-collapse:collapse;min-width:420px;}
+table.ft thead th{text-align:left;padding:6px 10px;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);background:var(--s2);border-bottom:1px solid var(--bdr2);}
+table.ft tbody td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+table.ft tbody tr:hover td{background:rgba(255,255,255,.02);}
+table.ft tbody tr.dr td{color:var(--dim);}
+table.ft tbody tr.er td{background:rgba(244,196,48,.06);}
+table.ft tbody tr.lr td{background:rgba(255,48,48,.04);}
+table.ft tbody tr.fr td{background:var(--gbg)!important;}
+.tn{font-family:'JetBrains Mono';font-size:10px;color:var(--dim);}
+.tdt{font-size:11px;color:var(--gr);white-space:nowrap;}
+.ttime{font-family:'JetBrains Mono';font-size:12px;font-weight:700;color:var(--gold);}
+.tm2{font-weight:600;color:var(--w);font-size:13px;}
+.tsc{font-family:'JetBrains Mono';font-weight:700;color:var(--gold2);font-size:12px;white-space:nowrap;}
+.tv{font-size:11px;color:var(--dim);}
+.gt{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--blbg);color:var(--blue);}
+.fmt-box{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+.fmt-box h3{font-family:'Bebas Neue';font-size:14px;letter-spacing:1.5px;color:var(--gold);margin-bottom:5px;}
+.fmt-box p{font-size:12px;color:var(--gr);line-height:1.7;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 0;font-size:11px;color:var(--dim);}
+.leg{display:flex;align-items:center;gap:4px;}
+.leg-dot{width:8px;height:8px;border-radius:1px;}
+
+/* SIGNATURE */
+.signature {
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.5px;
+}
+.signature span {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* DYNAMIC CALENDAR ICON */
+.cal-icon {
+  display: inline-block;
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  text-align: center;
+  line-height: 1;
+  overflow: hidden;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--s1);
+  transform: translateY(-1px);
+}
+.cal-icon b {
+  display: block;
+  background: var(--red);
+  color: #fff;
+  font-size: 7px;
+  padding: 2px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.cal-icon i {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--w);
+  padding: 2px 4px 1px;
+  font-style: normal;
+}
+
+@media(max-width:560px){.tv{display:none;}.gg{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <span class="hdr-icon">🏆</span>
+  <h1>FIFA World Cup 2026</h1>
+  <div class="hdr-sub">Canada · Mexico · United States</div>
+  <div class="hdr-pills">
+    <span class="pill">Jun 11 – Jul 19, 2026</span>
+    <span class="pill">48 Teams · 104 Matches</span>
+    <span class="pill g">🕐 Dubai Time (UTC+4)</span>
+  </div>
+  <div class="signature">designed by <span>Eng. Mickey ;)</span></div>
+</div>
+
+<div class="sbar">
+  <button class="rfbtn" id="rfBtn" onclick="loadData(true)">
+    <span id="rfIco">↻</span> Refresh
+  </button>
+  <span class="sbar-txt" id="sbarTxt">Loading…</span>
+  <div class="sbar-r">
+    <span class="clk" id="clk"></span>
+    <a class="lnk live-lnk" href="https://www.sofascore.com/football/tournament/world/world-championship/16" target="_blank">Live Scores</a>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" id="todayTab" onclick="go('today',this)">Today</button>
+  <button class="tab"     onclick="go('groups',this)">🏟 Groups</button>
+  <button class="tab"     onclick="go('sched',this)">📋 Schedule</button>
+  <button class="tab"     onclick="go('ko',this)">⚡ Knockout</button>
+</div>
+
+<div id="panel-today"  class="panel on"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+<div id="panel-groups" class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+<div id="panel-sched"  class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+<div id="panel-ko"     class="panel"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// DATA SOURCE (Your Automated Robot Output)
+// ══════════════════════════════════════════════════════════
+const LOCAL_LIVE_URL = './live_scores.json';
+
+// ══════════════════════════════════════════════════════════
+// FLAGS & CONSTANTS
+// ══════════════════════════════════════════════════════════
+const FL={
+  'Mexico':'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Korea Republic':'🇰🇷','Czechia':'🇨🇿','Czech Republic':'🇨🇿',
+  'Canada':'🇨🇦','Bosnia & Herzegovina':'🇧🇦','Bosnia and Herzegovina':'🇧🇦','Qatar':'🇶🇦','Switzerland':'🇨🇭',
+  'Brazil':'🇧🇷','Morocco':'🇲🇦','Haiti':'🇭🇹','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'USA':'🇺🇸','United States':'🇺🇸','Paraguay':'🇵🇾','Australia':'🇦🇺','Türkiye':'🇹🇷','Turkey':'🇹🇷',
+  'Germany':'🇩🇪','Curaçao':'🇨🇼','Curacao':'🇨🇼',"Côte d'Ivoire":'🇨🇮','Ivory Coast':'🇨🇮','Ecuador':'🇪🇨',
+  'Netherlands':'🇳🇱','Japan':'🇯🇵','Sweden':'🇸🇪','Tunisia':'🇹🇳',
+  'Belgium':'🇧🇪','Egypt':'🇪🇬','Iran':'🇮🇷','IR Iran':'🇮🇷','New Zealand':'🇳🇿',
+  'Spain':'🇪🇸','Cape Verde':'🇨🇻','Cabo Verde':'🇨🇻','Saudi Arabia':'🇸🇦','Uruguay':'🇺🇾',
+  'France':'🇫🇷','Senegal':'🇸🇳','Iraq':'🇮🇶','Norway':'🇳🇴',
+  'Argentina':'🇦🇷','Algeria':'🇩🇿','Austria':'🇦🇹','Jordan':'🇯🇴',
+  'Portugal':'🇵🇹','DR Congo':'🇨🇩','Congo DR':'🇨🇩','Colombia':'🇨🇴','Uzbekistan':'🇺🇿',
+  'England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croatia':'🇭🇷','Ghana':'🇬🇭','Panama':'🇵🇦'
+};
+const f  = n => FL[n]||'🏳';
+const fe = n => `${f(n)} ${n}`;
+
+function canon(n){
+  const MAP={
+    'Czech Republic':'Czechia','Turkey':'Türkiye','Cabo Verde':'Cape Verde',
+    "Côte d'Ivoire":'Ivory Coast','Congo DR':'DR Congo','Curacao':'Curaçao',
+    'IR Iran':'Iran','Bosnia and Herzegovina':'Bosnia & Herzegovina',
+    'United States':'USA', 'Korea Republic':'South Korea'
+  };
+  return MAP[n]||n;
+}
+
+const GROUPS={
+  A:['Mexico','South Korea','Czechia','South Africa'],
+  B:['Canada','Bosnia & Herzegovina','Switzerland','Qatar'],
+  C:['Brazil','Morocco','Haiti','Scotland'],
+  D:['USA','Paraguay','Australia','Türkiye'],
+  E:['Germany','Curaçao','Ivory Coast','Ecuador'],
+  F:['Netherlands','Japan','Sweden','Tunisia'],
+  G:['Belgium','Egypt','Iran','New Zealand'],
+  H:['Spain','Cape Verde','Saudi Arabia','Uruguay'],
+  I:['France','Senegal','Iraq','Norway'],
+  J:['Argentina','Algeria','Austria','Jordan'],
+  K:['Portugal','DR Congo','Colombia','Uzbekistan'],
+  L:['England','Croatia','Ghana','Panama']
+};
+
+function getGroup(teamName) {
+  const cName = canon(teamName);
+  for (const [grp, teams] of Object.entries(GROUPS)) {
+    if (teams.includes(cName)) return grp;
+  }
+  return '?';
+}
+
+// ══════════════════════════════════════════════════════════
+// TIME HELPERS (Locked to Dubai)
+// ══════════════════════════════════════════════════════════
+const DXB='Asia/Dubai';
+const now=()=>new Date();
+const fmtT=d=>d.toLocaleTimeString('en',{timeZone:DXB,hour:'2-digit',minute:'2-digit',hour12:false});
+const fmtD=d=>d.toLocaleDateString('en',{timeZone:DXB,weekday:'short',month:'short',day:'numeric'});
+
+function toDt(utc){ return new Date(utc); }
+function isToday(d){ return d.toLocaleDateString('en',{timeZone:DXB})===now().toLocaleDateString('en',{timeZone:DXB}); }
+function isLiveNow(status){ 
+    const liveStatuses = ["1H", "2H", "HT", "ET", "P", "BT", "LIVE"];
+    return liveStatuses.includes(status);
+}
+
+// ══════════════════════════════════════════════════════════
+// STANDINGS CALCULATOR
+// ══════════════════════════════════════════════════════════
+function calcStandings(matches){
+  const st={};
+  for(const [g,teams] of Object.entries(GROUPS)){
+    st[g]={};
+    teams.forEach(t=>st[g][t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
+  }
+  matches.forEach(m=>{
+    if(!m.s) return;
+    const {t1,t2,s:[g1,g2],g}=m;
+    if(!st[g]) return;
+    const add=(t,gf,ga,w,d,l)=>{
+      const cName = canon(t);
+      if(!st[g][cName]) st[g][cName]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+      const s=st[g][cName];
+      s.p++;s.gf+=gf;s.ga+=ga;s.w+=w;s.d+=d;s.l+=l;s.pts+=w?3:d?1:0;
+    };
+    if(g1>g2)     {add(t1,g1,g2,1,0,0);add(t2,g2,g1,0,0,1);}
+    else if(g1<g2){add(t1,g1,g2,0,0,1);add(t2,g2,g1,1,0,0);}
+    else          {add(t1,g1,g2,0,1,0);add(t2,g2,g1,0,1,0);}
+  });
+  const out={};
+  for(const [g,teams] of Object.entries(st)){
+    out[g]=Object.entries(teams)
+      .sort(([,a],[,b])=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf)
+      .map(([name,s])=>({name,...s,gd:s.gf-s.ga}));
+  }
+  return out;
+}
+
+// ══════════════════════════════════════════════════════════
+// STATE & RENDER
+// ══════════════════════════════════════════════════════════
+let MATCHES=[];
+let STANDINGS={};
+
+function renderToday(){
+  const n=now();
+  const todayM=MATCHES.filter(m=>isToday(m.dt)).sort((a,b)=>a.dt-b.dt);
+  const recentM=MATCHES.filter(m=>m.s&&!isToday(m.dt)&&(n-m.dt)<40*3600000).sort((a,b)=>b.dt-a.dt).slice(0,6);
+  const egyptNext=MATCHES.find(m=>(canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt')&&!m.s&&m.dt>n);
+  const upcomingM=MATCHES.filter(m=>!m.s&&!isToday(m.dt)&&m.dt>n).slice(0,5);
+
+  const dStr=n.toLocaleDateString('en',{timeZone:DXB,weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let h=`<div class="note">🕐 Dubai Time (UTC+4 = ET+8) · ${dStr}</div>`;
+
+  if(!todayM.length){
+    h+=`<div class="today-hd">No matches scheduled today</div>`;
+  } else {
+    h+=`<div class="today-hd">Today's Matches</div>`;
+    todayM.forEach(m=>{
+      const done= m.status === "FT" || m.status === "AET" || m.status === "PEN";
+      const live= isLiveNow(m.status);
+      const eg=canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+      h+=`<div class="mc ${eg?'eg':''} ${live?'live':''} ${done?'done':''}">
+        <div class="mc-row">
+          <span class="mc-time ${done?'t-done':live?'t-live':''}">${live ? m.status : fmtT(m.dt)}</span>
+          <span class="mc-teams">${fe(m.t1)} vs ${fe(m.t2)}</span>
+          ${m.s?`<span class="mc-score">${m.s[0]}–${m.s[1]}</span>`:''}
+          ${live?`<span class="tag t-lv">🔴 Live</span>`:''}
+        </div>
+        <div class="mc-foot">
+          <span class="tag t-g">Group ${m.g}</span>
+          ${done?`<span class="tag t-ok">✅ FT</span>`:!live?`<span class="tag t-nx">Upcoming</span>`:''}
+          <span>${m.v}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(recentM.length){
+    h+=`<div class="ibox" style="margin-top:12px"><div class="ilbl">Recent Results</div><div class="irow">`;
+    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · Group ${m.g} · ${m.v}<br>`;});
+    h+=`</div></div>`;
+  }
+  if(egyptNext){
+    h+=`<div class="ibox gold" style="margin-top:8px">
+      <div class="ilbl g">🇪🇬 Egypt's Next Match</div>
+      <div class="irow"><strong>${fe(egyptNext.t1)} vs ${fe(egyptNext.t2)}</strong><br>
+      <span style="color:var(--gold);font-weight:700">${fmtD(egyptNext.dt)} · ${fmtT(egyptNext.dt)} Dubai</span> · ${egyptNext.v}</div>
+    </div>`;
+  }
+  if(upcomingM.length){
+    h+=`<div class="ibox" style="margin-top:8px"><div class="ilbl">Coming Up</div><div class="irow">`;
+    upcomingM.forEach(m=>{h+=`<span style="color:var(--dim)">●</span> <strong>${fe(m.t1)} vs ${fe(m.t2)}</strong> · <span style="color:var(--gold)">${fmtT(m.dt)}</span> ${fmtD(m.dt)} · ${m.v}<br>`;});
+    h+=`</div></div>`;
+  }
+  document.getElementById('panel-today').innerHTML=h;
+}
+
+function renderGroups(){
+  let h=`<div class="note">🕐 Dubai Time · Standings calculated from results</div><div class="gg">`;
+  for(const [g,rows] of Object.entries(STANDINGS)){
+    const isEg=g==='G';
+    const grpM=MATCHES.filter(m=>m.g===g).sort((a,b)=>a.dt-b.dt);
+    h+=`<div class="gc ${isEg?'eg':''}">
+      <div class="gc-hd"><span class="gc-lbl">Group ${g}</span>${isEg?`<span class="eg-badge">🇪🇬 Egypt</span>`:''}</div>
+      <table class="st"><thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+    rows.forEach((r,i)=>{
+      const cls=i<2?'q1':i===2?'q3':'el';
+      h+=`<tr class="${cls}${r.name==='Egypt'?' egr':''}">
+        <td>${f(r.name)} ${r.name}</td>
+        <td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>
+        <td>${r.gd>=0?'+':''}${r.gd}</td><td class="pts">${r.pts}</td>
+      </tr>`;
+    });
+    h+=`</tbody></table><div class="gc-ms">`;
+    grpM.forEach(m=>{
+      const eg=canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+      h+=`<div class="mi ${eg?'egm':''}">
+        <div class="mi-top"><span class="mi-t">${fe(m.t1)} vs ${fe(m.t2)}</span>${m.s?`<span class="mi-s">${m.s[0]}–${m.s[1]}</span>`:''}</div>
+        <div class="mi-bot"><span class="mi-dxb">${fmtT(m.dt)}</span> · ${fmtD(m.dt)} · ${m.v}</div>
+      </div>`;
+    });
+    h+=`</div></div>`;
+  }
+  h+=`</div><div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Top 2 — auto qualify</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--gold)"></div>3rd — best 8 qualify</div>
+  </div>`;
+  document.getElementById('panel-groups').innerHTML=h;
+}
+
+function renderSchedule(){
+  let h=`<div class="note">🕐 Dubai Time (UTC+4) · ⭐ = Egypt · Dimmed = finished</div>
+  <div class="sb"><div class="sb-ttl"><span class="sp sp-g">Group Stage</span></div>
+  <div class="sw"><table class="ft">
+    <thead><tr><th>#</th><th>Dubai Date · Time</th><th>Match</th><th>Grp</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
+
+  MATCHES.forEach((m,i)=>{
+    const done= m.status === "FT" || m.status === "AET" || m.status === "PEN";
+    const live= isLiveNow(m.status);
+    const eg=canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
+    const today=isToday(m.dt);
+    h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}">
+      <td class="tn">${i+1}${eg?'⭐':''}</td>
+      <td class="tdt">${fmtD(m.dt)} · <span class="ttime">${fmtT(m.dt)}</span>
+        ${today?`<span style="font-size:9px;color:var(--gold);margin-left:4px;font-weight:700">TODAY</span>`:''}</td>
+      <td class="tm2">${fe(m.t1)} vs ${fe(m.t2)}</td>
+      <td><span class="gt">${m.g}</span></td>
+      <td class="tv">${m.v}</td>
+      <td class="${m.s?'tsc':'tv'}">${m.s?`${m.s[0]}–${m.s[1]}${done?' ✅':` 🔴 ${m.status}`}`:live?`🔴 ${m.status}`:'—'}</td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div></div>`;
+  document.getElementById('panel-sched').innerHTML=h;
+}
+
+function renderKO(){
+  document.getElementById('panel-ko').innerHTML=`
+  <div class="note">🕐 Dubai Time (UTC+4 = ET+8)</div>
+  <div class="fmt-box">
+    <h3>Tournament Format</h3>
+    <p>Top 2 from each group + 8 best 3rd-place teams = 32 advance to new <strong>Round of 32</strong>.<br>
+    🏆 <strong>Final: Sun Jul 19 · 23:00 Dubai (3pm ET)</strong></p>
+  </div>`;
+}
+
+function renderAll(){
+  if(MATCHES.length === 0) {
+    const emptyHtml = `
+      <div style="text-align:center; padding: 60px 20px; border: 1px solid var(--bdr); border-radius: 10px; background: var(--s1); margin-top: 10px;">
+        <span style="font-size: 32px; display: block; margin-bottom: 10px;">📡</span>
+        <h3 style="font-family: 'Bebas Neue'; font-size: 20px; color: var(--gold); letter-spacing: 1px;">Awaiting Fixture Data</h3>
+        <p style="color: var(--gr); font-size: 12px; margin-top: 5px;">Your automation pipeline is connected and working, but no matches are currently active.</p>
+      </div>`;
+    document.getElementById('panel-today').innerHTML = emptyHtml;
+    document.getElementById('panel-groups').innerHTML = emptyHtml;
+    document.getElementById('panel-sched').innerHTML = emptyHtml;
+    renderKO();
+    return;
+  }
+  
+  renderToday();
+  renderGroups();
+  renderSchedule();
+  renderKO();
+}
+
+// ══════════════════════════════════════════════════════════
+// LOAD DATA (Strictly local JSON created by Python)
+// ══════════════════════════════════════════════════════════
+async function loadData(){
+  const btn=document.getElementById('rfBtn');
+  const ico=document.getElementById('rfIco');
+  const txt=document.getElementById('sbarTxt');
+
+  btn.disabled=true;
+  ico.outerHTML=`<div class="btn-spin" id="rfIco"></div>`;
+  txt.innerHTML='Fetching backend data…';
+
+  try{
+    const res = await fetch(LOCAL_LIVE_URL+'?v='+Date.now());
+    if(!res.ok) throw new Error('Data not ready yet');
+    
+    const fetchedData = await res.json();
+    
+    MATCHES = fetchedData.map(m => {
+        return {
+            ...m,
+            g: getGroup(m.t1),
+            dt: toDt(m.utc)
+        };
+    }).sort((a,b) => a.dt - b.dt);
+
+    STANDINGS=calcStandings(MATCHES);
+    renderAll();
+    
+    const played=MATCHES.filter(m=>m.s).length;
+    const t=fmtT(new Date());
+    txt.innerHTML=`<b>✅ Data Synced</b> · ${played} matches played · ${t} DXB`;
+    txt.className='sbar-txt';
+  }catch(e){
+    txt.innerHTML=`<b>⚠ Waiting for backend robot to run...</b>`;
+    txt.className='sbar-txt err';
+  }
+
+  btn.disabled=false;
+  document.getElementById('rfIco').outerHTML=`<span id="rfIco">↻</span>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// NAV + CLOCK + CALENDAR
+// ══════════════════════════════════════════════════════════
+function go(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('panel-'+name).classList.add('on');
+  el.classList.add('on');
+}
+
+let lastDay = "";
+
+function tick(){
+  const dxbNow = new Date();
+  
+  const el = document.getElementById('clk');
+  if(el) el.textContent = dxbNow.toLocaleTimeString('en', {timeZone:DXB, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false}) + ' DXB';
+  
+  const currentDay = dxbNow.toLocaleDateString('en', { timeZone: DXB, day: '2-digit' });
+  
+  if(currentDay !== lastDay) {
+    const currentMonth = dxbNow.toLocaleDateString('en', { timeZone: DXB, month: 'short' });
+    const tab = document.getElementById('todayTab');
+    if(tab) {
+      tab.innerHTML = `<span class="cal-icon"><b>${currentMonth}</b><i>${currentDay}</i></span> Today`;
+    }
+    lastDay = currentDay;
+  }
+}
+
+// Boot
+setInterval(tick, 1000); 
+tick();
+loadData();
+setInterval(() => loadData(), 60000); 
+</script>
+</body>
+</html>
