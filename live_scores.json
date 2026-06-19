@@ -301,8 +301,11 @@
     "t2": "South Korea",
     "utc": "2026-06-19T01:00Z",
     "v": "Guadalajara",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "United States",
