@@ -323,8 +323,11 @@
     "t2": "Morocco",
     "utc": "2026-06-19T22:00Z",
     "v": "Foxborough, Massachusetts",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Brazil",
