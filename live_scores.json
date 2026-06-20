@@ -345,8 +345,11 @@
     "t2": "Paraguay",
     "utc": "2026-06-20T03:00Z",
     "v": "Santa Clara, California",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Netherlands",
