@@ -356,11 +356,8 @@
     "t2": "Sweden",
     "utc": "2026-06-20T17:00Z",
     "v": "Houston, Texas",
-    "s": [
-      0,
-      0
-    ],
-    "status": "LIVE"
+    "s": null,
+    "status": "NS"
   },
   {
     "t1": "Germany",
