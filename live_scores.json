@@ -367,8 +367,11 @@
     "t2": "Ivory Coast",
     "utc": "2026-06-20T20:00Z",
     "v": "Toronto",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Ecuador",
