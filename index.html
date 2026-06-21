@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FIFA World Cup 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<style>
+
+
+  
+  <style>
+
+   /* Mobile adjustments for the signature */
+@media (max-width: 600px) {
+  .signature {
+    text-align: right;    /* Keeps the stacked text aligned to the right edge */
+    line-height: 1.2;     /* Keeps the two lines close together */
+    z-index: 100;         /* Forces it to sit on top of other elements */
+  }
+}
 :root{
   --bg:#08090e;--s1:#10131c;--s2:#161a26;
   --bdr:rgba(255,255,255,0.07);--bdr2:rgba(255,255,255,0.14);
@@ -244,7 +256,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
     <span class="pill">48 Teams · 104 Matches</span>
     <span class="pill g">🕐 Dubai Time (UTC+4)</span>
   </div>
-  <div class="signature">designed by <span>Eng. Mickey ;)</span></div>
+<div class="signature">Designed by:<br>Eng. Mickey</div>
 </div>
 
 <div class="sbar">
@@ -257,7 +269,6 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 
   <div class="sbar-r">
     <span class="clk" id="clk"></span>
-    <a class="lnk live-lnk" href="https://www.sofascore.com/football/tournament/world/world-championship/16" target="_blank">Live Scores</a>
   </div>
 </div>
 
