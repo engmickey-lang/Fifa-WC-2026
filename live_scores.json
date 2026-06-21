@@ -23,7 +23,7 @@
   },
   {
     "t1": "Canada",
-    "t2": "Bosnia-Herzegovina",
+    "t2": "Bosnia & Herzegovina",
     "utc": "2026-06-12T19:00Z",
     "v": "Toronto",
     "s": [
@@ -276,7 +276,7 @@
   },
   {
     "t1": "Switzerland",
-    "t2": "Bosnia-Herzegovina",
+    "t2": "Bosnia & Herzegovina",
     "utc": "2026-06-18T19:00Z",
     "v": "Inglewood, California",
     "s": [
@@ -498,7 +498,7 @@
     "status": "NS"
   },
   {
-    "t1": "Bosnia-Herzegovina",
+    "t1": "Bosnia & Herzegovina",
     "t2": "Qatar",
     "utc": "2026-06-24T19:00Z",
     "v": "Seattle, Washington",
