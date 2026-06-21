@@ -378,8 +378,11 @@
     "t2": "Cura\u00e7ao",
     "utc": "2026-06-21T00:00Z",
     "v": "Kansas City, Missouri",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Tunisia",
