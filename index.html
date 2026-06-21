@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FIFA World Cup 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-
-
   
   <style>
 
@@ -108,11 +106,55 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 .clk{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);}
 
-.tabs{display:flex;overflow-x:auto;scrollbar-width:none;background:#0b0d17;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:30;}
-.tabs::-webkit-scrollbar{display:none;}
-.tab{padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Inter';text-transform:uppercase;}
-.tab:hover{color:var(--gr);}
-.tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+/* TABS (PILL BUTTON STYLE) */
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--bg);
+  border-bottom: 1px solid var(--bdr);
+  padding: 12px 16px;
+  gap: 10px;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 8px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--dim);
+  cursor: pointer;
+  background: var(--s1);
+  border: 1px solid var(--bdr);
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: 'Inter';
+  text-transform: uppercase;
+}
+.tab:hover { background: var(--s2); color: var(--w); }
+.tab.on { background: var(--gold); border-color: var(--gold); color: #000; }
+
+/* DROPDOWN FILTER */
+.date-filter {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--s1);
+  color: var(--w);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  font-family: 'Inter';
+  font-weight: 600;
+  margin-bottom: 16px;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+}
+
 .panel{display:none;padding:12px 14px;}
 .panel.on{display:block;}
 .note{background:var(--blbg);border:1px solid rgba(85,152,244,.2);border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:11px;font-weight:600;color:var(--blue);}
@@ -286,7 +328,16 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 
 <div id="panel-today"  class="panel on"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
 <div id="panel-groups" class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
-<div id="panel-sched"  class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
+
+<div id="panel-sched"  class="panel">
+  <select id="dateFilter" class="date-filter" onchange="filterDays()" style="display:none;">
+    <option value="ALL">🗓️ Show All Matches</option>
+  </select>
+  <div id="sched-content">
+    <div class="loader"><div class="big-spin"></div>Loading…</div>
+  </div>
+</div>
+
 <div id="panel-ko"     class="panel"></div>
 
 <script>
@@ -533,10 +584,12 @@ function renderSchedule(){
     const today = isToday(m.dt);
     
     const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+    const dateStr = fmtD(m.dt); // Formatted string used for filtering
 
-    h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}">
+    // Added data-date directly to the row to power the filter seamlessly
+    h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}" data-date="${dateStr}">
       <td class="tn">${i+1}${eg?'⭐':''}</td>
-      <td class="tdt">${fmtD(m.dt)} · <span class="ttime">${fmtT(m.dt)}</span>
+      <td class="tdt">${dateStr} · <span class="ttime">${fmtT(m.dt)}</span>
         ${today?`<span style="font-size:9px;color:var(--gold);margin-left:4px;font-weight:700">TODAY</span>`:''}</td>
       <td class="tm2">${fe(m.t1)} vs ${fe(m.t2)}</td>
       <td><span class="gt">${m.g}</span></td>
@@ -545,7 +598,44 @@ function renderSchedule(){
     </tr>`;
   });
   h+=`</tbody></table></div></div>`;
-  document.getElementById('panel-sched').innerHTML=h;
+  document.getElementById('sched-content').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+// CALENDAR DROPDOWN LOGIC
+// ══════════════════════════════════════════════════════════
+function setupDateFilter() {
+  const filter = document.getElementById("dateFilter");
+  if (!filter) return;
+  
+  // Reset the dropdown
+  filter.innerHTML = '<option value="ALL">🗓️ Show All Matches</option>';
+  
+  // Find all unique dates in the loaded match data
+  const uniqueDates = [...new Set(MATCHES.map(m => fmtD(m.dt)))];
+  
+  uniqueDates.forEach((dateStr) => {
+    const opt = document.createElement('option');
+    opt.value = dateStr;
+    opt.innerText = dateStr;
+    filter.appendChild(opt);
+  });
+  
+  // Display the filter once data is ready
+  filter.style.display = 'block'; 
+}
+
+function filterDays() {
+  const filterVal = document.getElementById("dateFilter").value;
+  const rows = document.querySelectorAll('#sched-content tbody tr');
+  
+  rows.forEach(row => {
+    if (filterVal === "ALL" || row.getAttribute('data-date') === filterVal) {
+      row.style.display = ""; // Show
+    } else {
+      row.style.display = "none"; // Hide
+    }
+  });
 }
 
 function renderKO(){
@@ -578,6 +668,7 @@ function renderAll(){
   renderToday();
   renderGroups();
   renderSchedule();
+  setupDateFilter(); // Initializes the calendar dropdown after schedule rendering
   renderKO();
 }
 
