@@ -389,8 +389,11 @@
     "t2": "Japan",
     "utc": "2026-06-21T04:00Z",
     "v": "Guadalupe",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Spain",
