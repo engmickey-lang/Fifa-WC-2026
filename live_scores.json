@@ -400,8 +400,11 @@
     "t2": "Saudi Arabia",
     "utc": "2026-06-21T16:00Z",
     "v": "Atlanta, Georgia",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Belgium",
