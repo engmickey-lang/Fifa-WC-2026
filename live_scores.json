@@ -411,8 +411,11 @@
     "t2": "Iran",
     "utc": "2026-06-21T19:00Z",
     "v": "Inglewood, California",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Uruguay",
