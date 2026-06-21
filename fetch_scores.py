@@ -54,6 +54,13 @@ def main():
             home_name = home_team_data.get("team", {}).get("name", "TBD")
             away_name = away_team_data.get("team", {}).get("name", "TBD")
 
+            # --- BOSNIA NAME NORMALIZATION FIX ---
+            if home_name == "Bosnia-Herzegovina":
+                home_name = "Bosnia & Herzegovina"
+            if away_name == "Bosnia-Herzegovina":
+                away_name = "Bosnia & Herzegovina"
+            # -------------------------------------
+
             status_obj = event.get("status", {}).get("type", {})
             state = status_obj.get("state", "pre")
             status_name = status_obj.get("name", "")
