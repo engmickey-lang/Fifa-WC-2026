@@ -91,7 +91,6 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .tabs {
   display: flex;
   overflow-x: auto;
-  scrollbar-width: none;
   background: var(--bg);
   border-bottom: 1px solid var(--bdr);
   padding: 12px 16px;
@@ -104,7 +103,6 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 @media (min-width: 600px) {
   .tabs { justify-content: center; } /* Centers nicely only on larger screens */
 }
-.tabs::-webkit-scrollbar { display: none; }
 .tab {
   padding: 8px 16px;
   font-size: 11px;
@@ -128,13 +126,11 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .cal-strip {
   display: flex;
   overflow-x: auto;
-  scrollbar-width: none;
   gap: 10px;
   padding: 4px 0 16px 0;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--bdr);
 }
-.cal-strip::-webkit-scrollbar { display: none; }
 .dc {
   flex-shrink: 0;
   background: var(--s1);
@@ -161,6 +157,38 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .dc-day { font-family: 'Bebas Neue'; font-size: 24px; color: var(--w); line-height: 1; letter-spacing: 1px; }
 .dc.active .dc-dow { color: rgba(0,0,0,0.6); }
 .dc.active .dc-day { color: #000; }
+
+/* DESKTOP VS MOBILE SCROLLBAR LOGIC */
+@media (min-width: 768px) {
+  /* Desktop: Show thin custom scrollbars */
+  .tabs, .cal-strip {
+    scrollbar-width: thin;
+    scrollbar-color: var(--dim) transparent;
+  }
+  .tabs::-webkit-scrollbar, .cal-strip::-webkit-scrollbar {
+    height: 6px;
+    display: block;
+  }
+  .tabs::-webkit-scrollbar-track, .cal-strip::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .tabs::-webkit-scrollbar-thumb, .cal-strip::-webkit-scrollbar-thumb {
+    background: var(--dim);
+    border-radius: 10px;
+  }
+  .tabs::-webkit-scrollbar-thumb:hover, .cal-strip::-webkit-scrollbar-thumb:hover {
+    background: var(--gr);
+  }
+}
+@media (max-width: 767px) {
+  /* Mobile: Hide scrollbars for a clean swipe experience */
+  .tabs, .cal-strip {
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar, .cal-strip::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 /* PANELS */
 .panel{display:none;padding:12px 14px;}
@@ -753,7 +781,7 @@ function tick(){
   const currentDay = dxbNow.toLocaleDateString('en', { timeZone: DXB, day: '2-digit' });
   
   if(currentDay !== lastDay) {
-    const currentMonth = dxbNow.toLocaleDateString('en', { timeZone: DXB, month: 'short' });
+    const currentMonth = dxb Now.toLocaleDateString('en', { timeZone: DXB, month: 'short' });
     const tab = document.getElementById('todayTab');
     if(tab) {
       tab.innerHTML = `<span class="cal-icon"><b>${currentMonth}</b><i>${currentDay}</i></span> Today`;
