@@ -781,7 +781,7 @@ function tick(){
   const currentDay = dxbNow.toLocaleDateString('en', { timeZone: DXB, day: '2-digit' });
   
   if(currentDay !== lastDay) {
-    const currentMonth = dxb Now.toLocaleDateString('en', { timeZone: DXB, month: 'short' });
+    const currentMonth = dxbNow.toLocaleDateString('en', { timeZone: DXB, month: 'short' });
     const tab = document.getElementById('todayTab');
     if(tab) {
       tab.innerHTML = `<span class="cal-icon"><b>${currentMonth}</b><i>${currentDay}</i></span> Today`;
