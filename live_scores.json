@@ -433,8 +433,11 @@
     "t2": "Egypt",
     "utc": "2026-06-22T01:00Z",
     "v": "Vancouver",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Argentina",
