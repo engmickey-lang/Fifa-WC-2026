@@ -455,8 +455,11 @@
     "t2": "Iraq",
     "utc": "2026-06-22T21:00Z",
     "v": "Philadelphia, Pennsylvania",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Norway",
