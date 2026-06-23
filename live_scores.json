@@ -510,8 +510,11 @@
     "t2": "Croatia",
     "utc": "2026-06-23T23:00Z",
     "v": "Toronto",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Colombia",
