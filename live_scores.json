@@ -466,8 +466,11 @@
     "t2": "Senegal",
     "utc": "2026-06-23T00:00Z",
     "v": "East Rutherford, New Jersey",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Jordan",
