@@ -565,8 +565,11 @@
     "t2": "Brazil",
     "utc": "2026-06-24T22:00Z",
     "v": "Miami Gardens, Florida",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Czechia",
