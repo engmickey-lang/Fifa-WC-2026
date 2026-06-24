@@ -521,8 +521,11 @@
     "t2": "Congo DR",
     "utc": "2026-06-24T02:00Z",
     "v": "Guadalajara",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Bosnia & Herzegovina",
