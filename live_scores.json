@@ -554,8 +554,11 @@
     "t2": "Haiti",
     "utc": "2026-06-24T22:00Z",
     "v": "Atlanta, Georgia",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Scotland",
