@@ -532,11 +532,8 @@
     "t2": "Qatar",
     "utc": "2026-06-24T19:00Z",
     "v": "Seattle, Washington",
-    "s": [
-      2,
-      0
-    ],
-    "status": "LIVE"
+    "s": null,
+    "status": "NS"
   },
   {
     "t1": "Switzerland",
