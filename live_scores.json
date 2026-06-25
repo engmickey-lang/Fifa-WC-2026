@@ -598,8 +598,11 @@
     "t2": "Ivory Coast",
     "utc": "2026-06-25T20:00Z",
     "v": "Philadelphia, Pennsylvania",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Ecuador",
