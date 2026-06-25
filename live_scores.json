@@ -555,10 +555,10 @@
     "utc": "2026-06-24T22:00Z",
     "v": "Atlanta, Georgia",
     "s": [
-      2,
+      4,
       2
     ],
-    "status": "LIVE"
+    "status": "FT"
   },
   {
     "t1": "Scotland",
@@ -569,23 +569,29 @@
       0,
       3
     ],
-    "status": "LIVE"
+    "status": "FT"
   },
   {
     "t1": "Czechia",
     "t2": "Mexico",
     "utc": "2026-06-25T01:00Z",
     "v": "Mexico City",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      3
+    ],
+    "status": "FT"
   },
   {
     "t1": "South Africa",
     "t2": "South Korea",
     "utc": "2026-06-25T01:00Z",
     "v": "Guadalupe",
-    "s": null,
-    "status": "NS"
+    "s": [
+      1,
+      0
+    ],
+    "status": "FT"
   },
   {
     "t1": "Cura\u00e7ao",
@@ -732,7 +738,7 @@
     "status": "NS"
   },
   {
-    "t1": "Group A 2nd Place",
+    "t1": "South Africa",
     "t2": "Canada",
     "utc": "2026-06-28T19:00Z",
     "v": "Inglewood, California",
@@ -740,7 +746,7 @@
     "status": "NS"
   },
   {
-    "t1": "Group C Winner",
+    "t1": "Brazil",
     "t2": "Group F 2nd Place",
     "utc": "2026-06-29T17:00Z",
     "v": "Houston, Texas",
@@ -757,7 +763,7 @@
   },
   {
     "t1": "Group F Winner",
-    "t2": "Group C 2nd Place",
+    "t2": "Morocco",
     "utc": "2026-06-30T01:00Z",
     "v": "Guadalupe",
     "s": null,
