@@ -606,8 +606,11 @@
     "t2": "Germany",
     "utc": "2026-06-25T20:00Z",
     "v": "East Rutherford, New Jersey",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Japan",
