@@ -642,16 +642,22 @@
     "t2": "Australia",
     "utc": "2026-06-26T02:00Z",
     "v": "Santa Clara, California",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "T\u00fcrkiye",
     "t2": "United States",
     "utc": "2026-06-26T02:00Z",
     "v": "Inglewood, California",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Norway",
