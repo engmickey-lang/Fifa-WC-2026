@@ -675,8 +675,11 @@
     "t2": "Iraq",
     "utc": "2026-06-26T19:00Z",
     "v": "Toronto",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Cape Verde",
