@@ -664,8 +664,11 @@
     "t2": "France",
     "utc": "2026-06-26T19:00Z",
     "v": "Foxborough, Massachusetts",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Senegal",
