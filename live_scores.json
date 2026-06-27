@@ -752,16 +752,22 @@
     "t2": "Portugal",
     "utc": "2026-06-27T23:30Z",
     "v": "Miami Gardens, Florida",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Congo DR",
     "t2": "Uzbekistan",
     "utc": "2026-06-27T23:30Z",
     "v": "Atlanta, Georgia",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Algeria",
