@@ -686,11 +686,8 @@
     "t2": "Saudi Arabia",
     "utc": "2026-06-27T00:00Z",
     "v": "Houston, Texas",
-    "s": [
-      0,
-      0
-    ],
-    "status": "LIVE"
+    "s": null,
+    "status": "NS"
   },
   {
     "t1": "Uruguay",
