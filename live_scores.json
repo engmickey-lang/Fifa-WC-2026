@@ -719,8 +719,11 @@
     "t2": "Belgium",
     "utc": "2026-06-27T03:00Z",
     "v": "Vancouver",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Croatia",
