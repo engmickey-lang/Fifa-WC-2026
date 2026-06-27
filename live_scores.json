@@ -741,8 +741,11 @@
     "t2": "England",
     "utc": "2026-06-27T21:00Z",
     "v": "East Rutherford, New Jersey",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Colombia",
