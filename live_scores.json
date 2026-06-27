@@ -730,8 +730,11 @@
     "t2": "Ghana",
     "utc": "2026-06-27T21:00Z",
     "v": "Philadelphia, Pennsylvania",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Panama",
