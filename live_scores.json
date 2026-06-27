@@ -694,8 +694,11 @@
     "t2": "Spain",
     "utc": "2026-06-27T00:00Z",
     "v": "Guadalajara",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Egypt",
