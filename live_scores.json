@@ -843,7 +843,7 @@
   },
   {
     "t1": "England",
-    "t2": "Third Place Group E/H/I/J/K",
+    "t2": "Congo DR",
     "utc": "2026-07-01T16:00Z",
     "v": "Atlanta, Georgia",
     "s": null,
@@ -851,7 +851,7 @@
   },
   {
     "t1": "Belgium",
-    "t2": "Third Place Group A/E/H/I/J",
+    "t2": "Senegal",
     "utc": "2026-07-01T20:00Z",
     "v": "Seattle, Washington",
     "s": null,
@@ -874,7 +874,7 @@
     "status": "NS"
   },
   {
-    "t1": "Group K 2nd Place",
+    "t1": "Portugal",
     "t2": "Croatia",
     "utc": "2026-07-02T23:00Z",
     "v": "Toronto",
@@ -906,7 +906,7 @@
     "status": "NS"
   },
   {
-    "t1": "Group K Winner",
+    "t1": "Colombia",
     "t2": "Ghana",
     "utc": "2026-07-04T01:30Z",
     "v": "Kansas City, Missouri",
