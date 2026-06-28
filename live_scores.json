@@ -782,8 +782,11 @@
     "t2": "Argentina",
     "utc": "2026-06-28T02:00Z",
     "v": "Arlington, Texas",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "South Africa",
