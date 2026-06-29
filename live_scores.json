@@ -807,8 +807,11 @@
     "t2": "Japan",
     "utc": "2026-06-29T17:00Z",
     "v": "Houston, Texas",
-    "s": null,
-    "status": "NS"
+    "s": [
+      0,
+      0
+    ],
+    "status": "LIVE"
   },
   {
     "t1": "Germany",
