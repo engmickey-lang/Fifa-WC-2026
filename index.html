@@ -293,7 +293,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 .tsc{font-family:'JetBrains Mono';font-weight:700;color:var(--gold2);font-size:12px;white-space:nowrap;}
 .tv{font-size:11px;color:var(--dim);}
 .gt{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--blbg);color:var(--blue);}
-.adv{font-size:.82em;}
+.adv{font-size:.6em;color:var(--gold);font-weight:700;vertical-align:super;margin-left:1px;}
 .pen-mini{font-size:.74em;color:var(--gr);font-weight:600;white-space:nowrap;}
 
 /* SIGNATURE */
@@ -592,8 +592,9 @@ function winSide(m){
 }
 // Penalty shootout suffix for a score line, e.g. " (4–3 pens)".
 const penTxt = m => m.p ? ` <span class="pen-mini">(${m.p[0]}–${m.p[1]} pens)</span>` : '';
-// Trophy marker placed next to the team that advances.
-const advTag = ' <span class="adv" title="Advances">🏆</span>';
+// Small superscript marker glued to the team that advances. No leading space,
+// so it can never wrap onto the next line and end up under the wrong team.
+const advTag = '<span class="adv" title="Winner — advances">★</span>';
 
 function canon(n){
   const MAP={
