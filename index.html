@@ -256,9 +256,6 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 .tsc{font-family:'JetBrains Mono';font-weight:700;color:var(--gold2);font-size:12px;white-space:nowrap;}
 .tv{font-size:11px;color:var(--dim);}
 .gt{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--blbg);color:var(--blue);}
-.fmt-box{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
-.fmt-box h3{font-family:'Bebas Neue';font-size:14px;letter-spacing:1.5px;color:var(--gold);margin-bottom:5px;}
-.fmt-box p{font-size:12px;color:var(--gr);line-height:1.7;}
 
 /* SIGNATURE */
 .signature {
@@ -306,70 +303,81 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   font-style: normal;
 }
 
-/* KNOCKOUT BRACKET HIERARCHY */
-.bracket-wrapper {
+/* CONVERGING KNOCKOUT BRACKET */
+.converging-bracket {
   display: flex;
-  gap: 24px;
+  align-items: stretch;
+  gap: 16px;
   overflow-x: auto;
-  padding: 10px 0 20px;
-  scrollbar-width: thin;
+  padding: 10px 10px 40px;
 }
-.bracket-round {
+.bracket-col {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 180px;
+}
+.b-title {
+  text-align: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--bdr);
+}
+.b-slots {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  min-width: 240px;
-  gap: 16px;
+  flex: 1; 
+  gap: 12px;
 }
-.round-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
-  letter-spacing: 1.5px;
-  color: var(--gold);
-  text-align: center;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--bdr);
-  padding-bottom: 4px;
-}
-.ko-match {
+.b-match {
   background: var(--s1);
   border: 1px solid var(--bdr);
   border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  padding: 8px 12px;
   position: relative;
 }
-.ko-match.live { border-color: rgba(255,48,48,.4); background: rgba(255,48,48,.02); }
-.ko-match.done { opacity: 0.85; }
-.ko-team {
+.b-match.placeholder {
+  border: 1px dashed var(--dim);
+  background: rgba(255,255,255,0.02);
+}
+.b-meta {
+  font-size: 9px;
+  color: var(--dim);
+  text-align: center;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.b-team {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
   font-weight: 600;
   color: var(--gr);
+  margin-bottom: 4px;
 }
-.ko-team.winner {
-  color: var(--w);
-  font-weight: 700;
+.b-team:last-child { margin-bottom: 0; }
+.b-team.winner { color: var(--w); font-weight: 700; }
+.b-team.tbd { color: var(--dim); }
+.b-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold2); }
+.b-center {
+  width: 240px;
 }
-.ko-team .score {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  color: var(--gold2);
-}
-.ko-meta {
-  font-size: 10px;
-  color: var(--dim);
+.b-center-inner {
   display: flex;
-  justify-content: space-between;
-  border-top: 1px solid rgba(255,255,255,0.03);
-  padding-top: 4px;
-  margin-top: 2px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
-.ko-meta .live-label { color: var(--live); font-weight: 700; }
 
 @media(max-width:768px){
   .live-ticker { width: 100%; order: 3; justify-content: center; }
@@ -428,6 +436,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 // DATA SOURCE
 // ══════════════════════════════════════════════════════════
 const LOCAL_LIVE_URL = 'https://raw.githubusercontent.com/engmickey-lang/Fifa-WC-2026/main/live_scores.json';
+
 // ══════════════════════════════════════════════════════════
 // FLAGS & CONSTANTS
 // ══════════════════════════════════════════════════════════
@@ -482,7 +491,7 @@ function getGroup(teamName) {
 }
 
 // ══════════════════════════════════════════════════════════
-// TIME HELPERS (Locked to Dubai)
+// TIME HELPERS 
 // ══════════════════════════════════════════════════════════
 const DXB='Asia/Dubai';
 const now=()=>new Date();
@@ -508,7 +517,7 @@ function calcStandings(matches){
     teams.forEach(t=>st[g][t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
   }
   matches.forEach(m=>{
-    if(!m.s || m.isKO) return; // Do not calculate knockout matches in group standings
+    if(!m.s || m.isKO) return; 
     const {t1,t2,s:[g1,g2],g}=m;
     if(!st[g]) return;
     const add=(t,gf,ga,w,d,l)=>{
@@ -685,82 +694,78 @@ function renderSchedule(){
 
 function renderKO() {
   const koMatches = MATCHES.filter(m => m.isKO);
-  
-  if (koMatches.length === 0) {
-    document.getElementById('panel-ko').innerHTML = `
-      <div class="note">🕐 Dubai Time (UTC+4 = ET+8)</div>
-      <div class="fmt-box">
-        <h3>Knockout Stage Bracket</h3>
-        <p>The Group Stage is concluding! Top teams will automatically populate this hierarchical bracket as soon as pairings are confirmed by FIFA.</p>
-      </div>`;
-    return;
-  }
 
-  const roundsData = {
-    "Round of 32": [],
-    "Round of 16": [],
-    "Quarterfinals": [],
-    "Semifinals": [],
-    "Final": []
-  };
+  const rounds = { "32": [], "16": [], "8": [], "4": [], "2": [] };
 
   koMatches.forEach(m => {
     let r = m.stageLabel.toLowerCase();
-    let targetRound = "Round of 32";
-    if (r.includes("16")) targetRound = "Round of 16";
-    else if (r.includes("quarter")) targetRound = "Quarterfinals";
-    else if (r.includes("semi")) targetRound = "Semifinals";
-    else if (r.includes("final") && !r.includes("quarter") && !r.includes("semi")) targetRound = "Final";
-    
-    if (roundsData[targetRound]) {
-      roundsData[targetRound].push(m);
-    } else {
-      if (!roundsData[targetRound]) roundsData[targetRound] = [];
-      roundsData[targetRound].push(m);
-    }
+    if (r.includes("16")) rounds["16"].push(m);
+    else if (r.includes("quarter")) rounds["8"].push(m);
+    else if (r.includes("semi")) rounds["4"].push(m);
+    else if (r.includes("final") && !r.includes("quarter") && !r.includes("semi")) rounds["2"].push(m);
+    else rounds["32"].push(m); 
   });
 
-  let h = `<div class="note">🕐 Dubai Time · Swipe or Scroll horizontally to see full progression ➔</div>`;
-  h += `<div class="bracket-wrapper">`;
+  const makeCard = (m) => {
+    if (!m) {
+      return `<div class="b-match placeholder">
+                <div class="b-meta">TBD</div>
+                <div class="b-team tbd"><span>TBD</span><span class="b-score">-</span></div>
+                <div class="b-team tbd"><span>TBD</span><span class="b-score">-</span></div>
+              </div>`;
+    }
+    const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
+    const live = !done && isLiveNow(m.status, m.dt);
+    const s1 = m.s ? m.s[0] : (live ? 0 : '');
+    const s2 = m.s ? m.s[1] : (live ? 0 : '');
+    const w1 = done && m.s && m.s[0] > m.s[1];
+    const w2 = done && m.s && m.s[1] > m.s[0];
+    
+    return `<div class="b-match ${live ? 'live' : ''} ${done ? 'done' : ''}">
+              <div class="b-meta">${live ? '<span style="color:var(--live)">🔴 LIVE</span>' : fmtD(m.dt)}</div>
+              <div class="b-team ${w1 ? 'winner' : ''}">
+                <span>${f(m.t1)} ${canon(m.t1)}</span><span class="b-score">${s1}</span>
+              </div>
+              <div class="b-team ${w2 ? 'winner' : ''}">
+                <span>${f(m.t2)} ${canon(m.t2)}</span><span class="b-score">${s2}</span>
+              </div>
+            </div>`;
+  };
 
-  for (const [roundName, matches] of Object.entries(roundsData)) {
-    if (matches.length === 0) continue; 
+  const makeCol = (matches, title, count) => {
+    let h = `<div class="bracket-col"><div class="b-title">${title}</div><div class="b-slots">`;
+    for(let i=0; i<count; i++) {
+      h += makeCard(matches[i]); 
+    }
+    h += `</div></div>`;
+    return h;
+  };
 
-    h += `<div class="bracket-round">`;
-    h += `<div class="round-title">${roundName}</div>`;
+  let html = `<div class="note">🕐 Dubai Time · Swipe horizontally to view Left and Right converging brackets ➔</div>`;
+  html += `<div class="converging-bracket" id="bracketContainer">`;
 
-    matches.forEach(m => {
-      const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
-      const live = !done && isLiveNow(m.status, m.dt);
-      
-      const s1 = m.s ? m.s[0] : (live ? 0 : '');
-      const s2 = m.s ? m.s[1] : (live ? 0 : '');
-      
-      const w1 = done && m.s && m.s[0] > m.s[1];
-      const w2 = done && m.s && m.s[1] > m.s[0];
+  html += makeCol(rounds["32"].slice(0, 8), "ROUND OF 32", 8);
+  html += makeCol(rounds["16"].slice(0, 4), "ROUND OF 16", 4);
+  html += makeCol(rounds["8"].slice(0, 2), "QUARTERFINALS", 2);
+  html += makeCol(rounds["4"].slice(0, 1), "SEMIFINALS", 1);
 
-      h += `
-        <div class="ko-match ${live ? 'live' : ''} ${done ? 'done' : ''}">
-          <div class="ko-team ${w1 ? 'winner' : ''}">
-            <span>${f(m.t1)} ${canon(m.t1)}</span>
-            <span class="score">${s1}</span>
-          </div>
-          <div class="ko-team ${w2 ? 'winner' : ''}">
-            <span>${f(m.t2)} ${canon(m.t2)}</span>
-            <span class="score">${s2}</span>
-          </div>
-          <div class="ko-meta">
-            <span>${live ? '<span class="live-label">🔴 LIVE</span>' : done ? '✅ Finished' : fmtT(m.dt)}</span>
-            <span>${done ? '' : fmtD(m.dt)}</span>
-          </div>
-        </div>
-      `;
-    });
-    h += `</div>`; 
-  }
+  html += `<div class="bracket-col b-center">
+             <div class="b-title" style="font-size:24px;">🏆 FINAL</div>
+             <div class="b-slots">
+               <div class="b-center-inner">
+                 <img src="trophy.png" style="height:120px; margin-bottom:20px; filter:drop-shadow(0 0 20px rgba(244,196,48,0.3));">
+                 ${makeCard(rounds["2"][0])}
+               </div>
+             </div>
+           </div>`;
 
-  h += `</div>`; 
-  document.getElementById('panel-ko').innerHTML = h;
+  html += makeCol(rounds["4"].slice(1, 2), "SEMIFINALS", 1);
+  html += makeCol(rounds["8"].slice(2, 4), "QUARTERFINALS", 2);
+  html += makeCol(rounds["16"].slice(4, 8), "ROUND OF 16", 4);
+  html += makeCol(rounds["32"].slice(8, 16), "ROUND OF 32", 8);
+
+  html += `</div>`;
+  document.getElementById('panel-ko').innerHTML = html;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -849,8 +854,7 @@ async function loadData(){
     
     MATCHES = fetchedData.map(m => {
         const d = toDt(m.utc);
-        // Fallback robust logic to ensure knockouts are categorized even if API stages are weird
-        const isGroupDate = d.getMonth() === 5 && d.getDate() <= 27; // June 27 or earlier
+        const isGroupDate = d.getMonth() === 5 && d.getDate() <= 27;
         const stageText = m.stage ? m.stage.toLowerCase() : "";
         const isKO = !isGroupDate || stageText.includes("round") || stageText.includes("final") || stageText.includes("16") || stageText.includes("32");
             
