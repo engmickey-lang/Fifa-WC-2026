@@ -348,8 +348,6 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   gap: 6px;
   margin-bottom: 8px;
 }
-/* Touch devices swipe the bracket at natural scale — no zoom controls. */
-@media (pointer: coarse) { .ko-controls { display: none; } }
 .ko-zbtn {
   background: var(--s1);
   border: 1px solid var(--bdr2);
@@ -362,6 +360,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   cursor: pointer;
   min-width: 34px;
   transition: all 0.2s;
+  user-select: none;
 }
 .ko-zbtn:hover { background: var(--s2); color: var(--w); border-color: var(--gr); }
 .ko-zbtn.ko-fit { color: var(--gold); border-color: var(--gbdr); }
@@ -698,7 +697,9 @@ function renderToday(){
       const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
       const live = !done && isLiveNow(m.status, m.dt);
       const eg = canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
-      const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+      
+      let scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+      if (m.p) scoreText += ` <span style="font-size:12px; color:var(--gr);">(${m.p[0]}-${m.p[1]})</span>`;
 
       h+=`<div class="mc ${eg?'eg':''} ${live?'live':''} ${done?'done':''}">
         <div class="mc-row">
@@ -717,7 +718,11 @@ function renderToday(){
 
   if(recentM.length){
     h+=`<div class="ibox" style="margin-top:12px"><div class="ilbl">Recent Results</div><div class="irow">`;
-    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · ${m.isKO ? m.stageLabel : `Group ${m.g}`} · ${m.v}<br>`;});
+    recentM.forEach(m=>{
+      let sStr = `${m.s[0]}–${m.s[1]}`;
+      if (m.p) sStr += ` (${m.p[0]}-${m.p[1]})`;
+      h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${sStr} ${fe(m.t2)}</strong> · ${m.isKO ? m.stageLabel : `Group ${m.g}`} · ${m.v}<br>`;
+    });
     h+=`</div></div>`;
   }
   if(egyptNext){
