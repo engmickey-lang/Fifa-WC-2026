@@ -24,6 +24,7 @@ def main():
     print("Fetching World Cup schedule...")
     schedule_events = fetch_data(SCHEDULE_URL)
     
+    # Cache-busting URL generation
     current_timestamp = int(time.time())
     live_url = f"{LIVE_URL_BASE}?_={current_timestamp}"
     
@@ -67,6 +68,11 @@ def main():
             notes = competition.get("notes", [])
             stage_name = notes[0].get("headline", "") if notes else ""
             
+            # --- EXTRACT PENALTY SHOOTOUTS ---
+            home_pen = home_team_data.get("shootoutScore")
+            away_pen = away_team_data.get("shootoutScore")
+            penalties = [int(home_pen), int(away_pen)] if home_pen is not None and away_pen is not None else None
+            
             score = None
             status = "NS"
 
@@ -90,6 +96,7 @@ def main():
                 "utc": event.get("date"),
                 "v": venue,
                 "s": score,
+                "p": penalties,
                 "status": status,
                 "stage": stage_name
             })
