@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8JSEWMGC79"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -23,7 +24,6 @@
   }
 }
 
-/* Gold signature name styling */
 .name-gold {
   color: var(--gold);
   font-weight: bold; 
@@ -367,7 +367,8 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 .b-team:last-child { margin-bottom: 0; }
 .b-team.winner { color: var(--w); font-weight: 700; }
 .b-team.tbd { color: var(--dim); }
-.b-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold2); }
+.b-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold2); display: flex; align-items: center;}
+.b-pen { font-size: 10px; color: var(--gr); font-weight: 500; margin-left: 4px; }
 .b-center {
   width: 240px;
 }
@@ -599,7 +600,7 @@ function renderToday(){
           ${scoreText ? `<span class="mc-score">${scoreText}</span>` : ''}
         </div>
         <div class="mc-foot">
-          <span class="tag t-g">${m.isKO ? 'Knockout Stage' : `Group ${m.g}`}</span>
+          <span class="tag t-g">${m.isKO ? m.stageLabel : `Group ${m.g}`}</span>
           ${done?`<span class="tag t-ok">✅ FT</span>`:!live?`<span class="tag t-nx">Upcoming</span>`:''}
           <span>${m.v}</span>
         </div>
@@ -609,7 +610,7 @@ function renderToday(){
 
   if(recentM.length){
     h+=`<div class="ibox" style="margin-top:12px"><div class="ilbl">Recent Results</div><div class="irow">`;
-    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · ${m.isKO ? 'Knockout Stage' : `Group ${m.g}`} · ${m.v}<br>`;});
+    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · ${m.isKO ? m.stageLabel : `Group ${m.g}`} · ${m.v}<br>`;});
     h+=`</div></div>`;
   }
   if(egyptNext){
@@ -675,7 +676,9 @@ function renderSchedule(){
     const eg = canon(m.t1)==='Egypt'||canon(m.t2)==='Egypt';
     const today = isToday(m.dt);
     
-    const scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+    let scoreText = m.s ? `${m.s[0]}–${m.s[1]}` : (live ? `0–0` : '');
+    if (m.p) scoreText += ` (${m.p[0]}-${m.p[1]})`;
+    
     const dateStr = fmtD(m.dt); 
 
     h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}" data-date="${dateStr}">
@@ -695,19 +698,68 @@ function renderSchedule(){
 function renderKO() {
   const koMatches = MATCHES.filter(m => m.isKO);
 
-  const rounds = { "32": [], "16": [], "8": [], "4": [], "2": [] };
+  // Group Matches by precise Stage Level
+  let r32 = koMatches.filter(m => m.stageLevel === 1);
+  let r16 = koMatches.filter(m => m.stageLevel === 2);
+  let qf = koMatches.filter(m => m.stageLevel === 3);
+  let sf = koMatches.filter(m => m.stageLevel === 4);
+  let fin = koMatches.filter(m => m.stageLevel === 5);
 
-  koMatches.forEach(m => {
-    let r = m.stageLabel.toLowerCase();
-    if (r.includes("16")) rounds["16"].push(m);
-    else if (r.includes("quarter")) rounds["8"].push(m);
-    else if (r.includes("semi")) rounds["4"].push(m);
-    else if (r.includes("final") && !r.includes("quarter") && !r.includes("semi")) rounds["2"].push(m);
-    else rounds["32"].push(m); 
-  });
+  // Pad arrays to exact bracket slot requirements
+  const pad = (arr, len) => {
+     const res = [...arr];
+     while(res.length < len) res.push(null);
+     return res.slice(0, len);
+  };
+  r32 = pad(r32, 16);
+  r16 = pad(r16, 8);
+  qf = pad(qf, 4);
+  sf = pad(sf, 2);
+  fin = pad(fin, 1);
+
+  // --- AUTO ADVANCE LOGIC: Resolves the winner including penalties! ---
+  const resolveWinner = (m) => {
+    if(!m || m.t1 === "TBD") return "TBD";
+    const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
+    if(!done) return "TBD";
+    const s1 = m.s ? m.s[0] : 0;
+    const s2 = m.s ? m.s[1] : 0;
+    const p1 = m.p ? m.p[0] : 0;
+    const p2 = m.p ? m.p[1] : 0;
+    if (s1 > s2 || (s1 === s2 && p1 > p2)) return m.t1;
+    if (s2 > s1 || (s1 === s2 && p2 > p1)) return m.t2;
+    return "TBD";
+  };
+
+  // Push winners physically into the next round if API hasn't done it yet
+  for(let i=0; i<8; i++) {
+      if(!r16[i]) r16[i] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
+      const w1 = resolveWinner(r32[i*2]);
+      const w2 = resolveWinner(r32[i*2+1]);
+      if(r16[i].t1 === "TBD" || r16[i].fake) r16[i].t1 = w1;
+      if(r16[i].t2 === "TBD" || r16[i].fake) r16[i].t2 = w2;
+  }
+  for(let i=0; i<4; i++) {
+      if(!qf[i]) qf[i] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
+      const w1 = resolveWinner(r16[i*2]);
+      const w2 = resolveWinner(r16[i*2+1]);
+      if(qf[i].t1 === "TBD" || qf[i].fake) qf[i].t1 = w1;
+      if(qf[i].t2 === "TBD" || qf[i].fake) qf[i].t2 = w2;
+  }
+  for(let i=0; i<2; i++) {
+      if(!sf[i]) sf[i] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
+      const w1 = resolveWinner(qf[i*2]);
+      const w2 = resolveWinner(qf[i*2+1]);
+      if(sf[i].t1 === "TBD" || sf[i].fake) sf[i].t1 = w1;
+      if(sf[i].t2 === "TBD" || sf[i].fake) sf[i].t2 = w2;
+  }
+  if(!fin[0]) fin[0] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
+  if(fin[0].t1 === "TBD" || fin[0].fake) fin[0].t1 = resolveWinner(sf[0]);
+  if(fin[0].t2 === "TBD" || fin[0].fake) fin[0].t2 = resolveWinner(sf[1]);
+  // ------------------------------------------------------------------
 
   const makeCard = (m) => {
-    if (!m) {
+    if (!m || (m.t1 === "TBD" && m.t2 === "TBD" && !m.s)) {
       return `<div class="b-match placeholder">
                 <div class="b-meta">TBD</div>
                 <div class="b-team tbd"><span>TBD</span><span class="b-score">-</span></div>
@@ -715,19 +767,33 @@ function renderKO() {
               </div>`;
     }
     const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
-    const live = !done && isLiveNow(m.status, m.dt);
+    const live = !done && m.status !== "NS" && isLiveNow(m.status, m.dt);
+    
     const s1 = m.s ? m.s[0] : (live ? 0 : '');
     const s2 = m.s ? m.s[1] : (live ? 0 : '');
-    const w1 = done && m.s && m.s[0] > m.s[1];
-    const w2 = done && m.s && m.s[1] > m.s[0];
+    const p1 = m.p ? `<span class="b-pen">(${m.p[0]})</span>` : '';
+    const p2 = m.p ? `<span class="b-pen">(${m.p[1]})</span>` : '';
     
+    let w1 = false;
+    let w2 = false;
+    if (done && m.s) {
+       if (m.s[0] > m.s[1] || (m.s[0] === m.s[1] && m.p && m.p[0] > m.p[1])) w1 = true;
+       if (m.s[1] > m.s[0] || (m.s[0] === m.s[1] && m.p && m.p[1] > m.p[0])) w2 = true;
+    }
+    
+    const n1 = m.t1 === "TBD" ? "TBD" : `${f(m.t1)} ${canon(m.t1)}`;
+    const n2 = m.t2 === "TBD" ? "TBD" : `${f(m.t2)} ${canon(m.t2)}`;
+    
+    let dtStr = "TBD";
+    if (m.dt) dtStr = live ? '<span style="color:var(--live)">🔴 LIVE</span>' : fmtD(m.dt);
+
     return `<div class="b-match ${live ? 'live' : ''} ${done ? 'done' : ''}">
-              <div class="b-meta">${live ? '<span style="color:var(--live)">🔴 LIVE</span>' : fmtD(m.dt)}</div>
-              <div class="b-team ${w1 ? 'winner' : ''}">
-                <span>${f(m.t1)} ${canon(m.t1)}</span><span class="b-score">${s1}</span>
+              <div class="b-meta">${dtStr}</div>
+              <div class="b-team ${w1 ? 'winner' : ''} ${m.t1==='TBD'?'tbd':''}">
+                <span>${n1}</span><span class="b-score">${s1}${p1}</span>
               </div>
-              <div class="b-team ${w2 ? 'winner' : ''}">
-                <span>${f(m.t2)} ${canon(m.t2)}</span><span class="b-score">${s2}</span>
+              <div class="b-team ${w2 ? 'winner' : ''} ${m.t2==='TBD'?'tbd':''}">
+                <span>${n2}</span><span class="b-score">${s2}${p2}</span>
               </div>
             </div>`;
   };
@@ -744,25 +810,25 @@ function renderKO() {
   let html = `<div class="note">🕐 Dubai Time · Swipe horizontally to view Left and Right converging brackets ➔</div>`;
   html += `<div class="converging-bracket" id="bracketContainer">`;
 
-  html += makeCol(rounds["32"].slice(0, 8), "ROUND OF 32", 8);
-  html += makeCol(rounds["16"].slice(0, 4), "ROUND OF 16", 4);
-  html += makeCol(rounds["8"].slice(0, 2), "QUARTERFINALS", 2);
-  html += makeCol(rounds["4"].slice(0, 1), "SEMIFINALS", 1);
+  html += makeCol(r32.slice(0, 8), "ROUND OF 32", 8);
+  html += makeCol(r16.slice(0, 4), "ROUND OF 16", 4);
+  html += makeCol(qf.slice(0, 2), "QUARTERFINALS", 2);
+  html += makeCol(sf.slice(0, 1), "SEMIFINALS", 1);
 
   html += `<div class="bracket-col b-center">
              <div class="b-title" style="font-size:24px;">🏆 FINAL</div>
              <div class="b-slots">
                <div class="b-center-inner">
                  <img src="trophy.png" style="height:120px; margin-bottom:20px; filter:drop-shadow(0 0 20px rgba(244,196,48,0.3));">
-                 ${makeCard(rounds["2"][0])}
+                 ${makeCard(fin[0])}
                </div>
              </div>
            </div>`;
 
-  html += makeCol(rounds["4"].slice(1, 2), "SEMIFINALS", 1);
-  html += makeCol(rounds["8"].slice(2, 4), "QUARTERFINALS", 2);
-  html += makeCol(rounds["16"].slice(4, 8), "ROUND OF 16", 4);
-  html += makeCol(rounds["32"].slice(8, 16), "ROUND OF 32", 8);
+  html += makeCol(sf.slice(1, 2), "SEMIFINALS", 1);
+  html += makeCol(qf.slice(2, 4), "QUARTERFINALS", 2);
+  html += makeCol(r16.slice(4, 8), "ROUND OF 16", 4);
+  html += makeCol(r32.slice(8, 16), "ROUND OF 32", 8);
 
   html += `</div>`;
   document.getElementById('panel-ko').innerHTML = html;
@@ -854,15 +920,25 @@ async function loadData(){
     
     MATCHES = fetchedData.map(m => {
         const d = toDt(m.utc);
-        const isGroupDate = d.getMonth() === 5 && d.getDate() <= 27;
         const stageText = m.stage ? m.stage.toLowerCase() : "";
-        const isKO = !isGroupDate || stageText.includes("round") || stageText.includes("final") || stageText.includes("16") || stageText.includes("32");
+        
+        // STRICT STAGE IDENTIFICATION TO PREVENT JUNK MATCHES
+        let stageLevel = 0;
+        if (stageText.includes("32")) stageLevel = 1;
+        else if (stageText.includes("16")) stageLevel = 2;
+        else if (stageText.includes("quarter")) stageLevel = 3;
+        else if (stageText.includes("semi")) stageLevel = 4;
+        else if (stageText.includes("final")) stageLevel = 5;
+        
+        const isKO = stageLevel > 0;
             
         return {
             ...m,
+            p: m.p || null,
             g: getGroup(m.t1),
             dt: d,
             isKO: isKO,
+            stageLevel: stageLevel,
             stageLabel: m.stage || "Knockout Match"
         };
     }).sort((a,b) => a.dt - b.dt);
