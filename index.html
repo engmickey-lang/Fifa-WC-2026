@@ -41,7 +41,11 @@
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
+body{
+  background:var(--bg);color:var(--w);
+  font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;
+  -webkit-text-size-adjust: 100%;
+}
 
 /* HEADER */
 .hdr{background:linear-gradient(180deg,#0d1020 0%,var(--bg) 100%);border-bottom:1px solid var(--bdr2);padding:20px 16px 14px;text-align:center;position:relative;}
@@ -142,7 +146,6 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
   border-bottom: 1px solid var(--bdr);
   position: relative;
 }
-/* Floating "All days" toggle: sticks to the right edge while chips scroll. */
 .cal-all {
   position: sticky;
   right: 0;
@@ -365,14 +368,35 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 .ko-zbtn:hover { background: var(--s2); color: var(--w); border-color: var(--gr); }
 .ko-zbtn.ko-fit { color: var(--gold); border-color: var(--gbdr); }
 #koZoomLbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim); min-width: 42px; text-align: center; }
+
+/* Transform Zoom Architecture */
+.ko-scroll-area {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  position: relative;
+  scrollbar-width: thin;
+}
+.ko-scroll-area::-webkit-scrollbar { height: 6px; }
+.ko-scroll-area::-webkit-scrollbar-track { background: transparent; }
+.ko-scroll-area::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 10px; }
+.ko-scroll-area::-webkit-scrollbar-thumb:hover { background: var(--gr); }
+
+#koSpacer {
+  transition: width 0.25s ease, height 0.25s ease;
+}
+#koTransform {
+  transform-origin: top left;
+  transition: transform 0.25s ease;
+}
 .converging-bracket {
-  display: flex;
+  display: inline-flex;
   align-items: stretch;
   gap: 16px;
-  overflow-x: auto;
   padding: 10px 10px 40px;
   position: relative;
 }
+
 .ko-svg {
   position: absolute;
   top: 0;
@@ -546,7 +570,7 @@ const FL={
 const f  = n => FL[n]||'🏳';
 const fe = n => `${f(n)} ${n}`;
 
-// FIFA 3-letter country codes — compact, recognizable labels for the live ticker.
+// FIFA 3-letter country codes
 const ABBR={
   'Mexico':'MEX','South Africa':'RSA','South Korea':'KOR','Korea Republic':'KOR','Czechia':'CZE','Czech Republic':'CZE',
   'Canada':'CAN','Bosnia & Herzegovina':'BIH','Bosnia and Herzegovina':'BIH','Qatar':'QAT','Switzerland':'SUI',
@@ -659,8 +683,6 @@ function renderTicker(){
   });
 
   if(liveM.length > 0){
-    // Each live match is a self-contained pill (flag + 3-letter code + score),
-    // so concurrent matches read as separate cards instead of one stacked blur.
     let h = '';
     liveM.forEach((m) => {
       const s = m.s ? `${m.s[0]}–${m.s[1]}` : `0–0`;
@@ -826,9 +848,6 @@ function renderKO() {
     return null;
   };
 
-  // Resolve which previous-round match feeds a given slot. ESPN slots are
-  // either a numbered reference ("Round of 32 5 Winner" → match #5) or, once
-  // played, the actual qualified team — which we trace back to the match it won.
   const parentFor = (slotRaw, prev) => {
     const num = (String(slotRaw).match(/(\d+)\s*Winner/i) || [])[1];
     if (num) return prev[(+num) - 1] || null;
@@ -836,8 +855,6 @@ function renderKO() {
     return prev.find(pm => { const w = winnerOf(pm); return w && canon(w) === team; }) || null;
   };
 
-  // Build the bracket tree from the Final down to the Round of 32 so columns
-  // can be ordered to match the real feeders (no crossed lines).
   const buildNode = (m, lvl) => {
     if (!m || lvl === 1) return { m, lvl, kids: [] };
     const prev = prevOf[lvl];
@@ -846,7 +863,6 @@ function renderKO() {
   };
   const root = fin[0] ? buildNode(fin[0], 5) : { m: null, lvl: 5, kids: [] };
 
-  // Assign a stable DOM id to every card and record parent→child edges.
   let idc = 0;
   KO_EDGES = [];
   const tag = (node) => {
@@ -859,8 +875,6 @@ function renderKO() {
   };
   tag(root);
 
-  // Third-place play-off: the two semifinal LOSERS drop down into it. Reuse the
-  // semifinal cards (root.kids) as its feeders, drawn as "loser" connectors.
   const third = MATCHES.find(m => m.isThird) || null;
   let thirdNode = null;
   if (third) {
@@ -870,7 +884,6 @@ function renderKO() {
     });
   }
 
-  // Depth-first collect (kids[0] before kids[1]) → vertical order per level.
   const collect = (node, acc) => {
     if (!node) return;
     (acc[node.lvl] = acc[node.lvl] || []).push(node);
@@ -935,106 +948,107 @@ function renderKO() {
              <button class="ko-zbtn" onclick="koZoom(1)" aria-label="Zoom in">+</button>
              <button class="ko-zbtn ko-fit" onclick="koFit()">⤢ Fit</button>
            </div>`;
-  html += `<div class="converging-bracket" id="bracketContainer">`;
-  html += `<svg class="ko-svg" id="koSvg"></svg>`;
-
-  html += makeCol(left[1], "ROUND OF 32");
-  html += makeCol(left[2], "ROUND OF 16");
-  html += makeCol(left[3], "QUARTERFINALS");
-  html += makeCol(left[4], "SEMIFINALS");
-
-  html += `<div class="bracket-col b-center">
-             <div class="b-title" style="font-size:24px;">🏆 FINAL</div>
-             <div class="b-slots">
-               <div class="b-center-inner">
-                 <img src="trophy.png" style="height:120px; margin-bottom:20px; filter:drop-shadow(0 0 20px rgba(244,196,48,0.3));">
-                 ${makeCard(root)}
-                 ${thirdNode ? `<div class="third-wrap">
-                     <div class="third-lbl">🥉 Third-Place Play-off</div>
-                     ${makeCard(thirdNode)}
-                   </div>` : ''}
+           
+  // New Transform Architecture Wrap
+  html += `<div class="ko-scroll-area" id="koScroll">
+             <div id="koSpacer">
+               <div id="koTransform">
+                 <div class="converging-bracket" id="bracketContainer">
+                   <svg class="ko-svg" id="koSvg"></svg>
+                   ${makeCol(left[1], "ROUND OF 32")}
+                   ${makeCol(left[2], "ROUND OF 16")}
+                   ${makeCol(left[3], "QUARTERFINALS")}
+                   ${makeCol(left[4], "SEMIFINALS")}
+                   <div class="bracket-col b-center">
+                     <div class="b-title" style="font-size:24px;">🏆 FINAL</div>
+                     <div class="b-slots">
+                       <div class="b-center-inner">
+                         <img src="trophy.png" style="height:120px; width:auto; margin-bottom:20px; filter:drop-shadow(0 0 20px rgba(244,196,48,0.3));">
+                         ${makeCard(root)}
+                         ${thirdNode ? `<div class="third-wrap">
+                             <div class="third-lbl">🥉 Third-Place Play-off</div>
+                             ${makeCard(thirdNode)}
+                           </div>` : ''}
+                       </div>
+                     </div>
+                   </div>
+                   ${makeCol(right[4], "SEMIFINALS")}
+                   ${makeCol(right[3], "QUARTERFINALS")}
+                   ${makeCol(right[2], "ROUND OF 16")}
+                   ${makeCol(right[1], "ROUND OF 32")}
+                 </div>
                </div>
              </div>
            </div>`;
 
-  html += makeCol(right[4], "SEMIFINALS");
-  html += makeCol(right[3], "QUARTERFINALS");
-  html += makeCol(right[2], "ROUND OF 16");
-  html += makeCol(right[1], "ROUND OF 32");
-
-  html += `</div>`;
   document.getElementById('panel-ko').innerHTML = html;
   requestAnimationFrame(() => { drawKOConnectors(); koAutoFit(); });
 }
 
-// ── Knockout bracket zoom ──────────────────────────────────
-// Uses CSS `zoom` (reflows + adjusts scroll, unlike transform). Desktop fits
-// the whole bracket on open; the user can then zoom freely. Touch devices keep a
-// readable natural scale and swipe — we deliberately never apply `zoom` there,
-// because mobile Safari doesn't scale the absolutely-positioned connector SVG in
-// lockstep with the columns, which made the lines drift (esp. on rotate).
-// Requiring a fine pointer means a phone in landscape (width ≥ 768) is still
-// treated as mobile.
+// ── Knockout bracket zoom (Transform Upgrade) ──────────────────────────────────
 let KO_ZOOM = 1;
-let KO_FIT = true;                                   // true = follow auto-fit
-const koIsDesktop = () => window.matchMedia('(min-width: 768px) and (pointer: fine)').matches;
+let KO_FIT = true; 
+let KO_NATURAL_W = 0;
+let KO_NATURAL_H = 0;
 
 function applyKoZoom() {
-  const cont = document.getElementById('bracketContainer');
-  if (cont) cont.style.zoom = KO_ZOOM;
+  const transformWrap = document.getElementById('koTransform');
+  const spacer = document.getElementById('koSpacer');
+  if (transformWrap && spacer && KO_NATURAL_W > 0) {
+    transformWrap.style.transform = `scale(${KO_ZOOM})`;
+    spacer.style.width = (KO_NATURAL_W * KO_ZOOM) + 'px';
+    spacer.style.height = (KO_NATURAL_H * KO_ZOOM) + 'px';
+  }
   const lbl = document.getElementById('koZoomLbl');
   if (lbl) lbl.textContent = Math.round(KO_ZOOM * 100) + '%';
 }
 
 function koFit() {
   const panel = document.getElementById('panel-ko');
-  const cont = document.getElementById('bracketContainer');
-  if (!panel || !cont || !panel.classList.contains('on')) return;
-  cont.style.zoom = 1;                                // measure at natural scale
-  const avail = cont.clientWidth, natural = cont.scrollWidth;
-  KO_ZOOM = natural > avail ? Math.max(0.25, +(avail / natural).toFixed(3)) : 1;
+  const scroll = document.getElementById('koScroll');
+  if (!panel || !scroll || !panel.classList.contains('on')) return;
+  const avail = scroll.clientWidth;
+  KO_ZOOM = KO_NATURAL_W > avail ? Math.max(0.15, +(avail / KO_NATURAL_W).toFixed(3)) : 1;
   KO_FIT = true;
   applyKoZoom();
 }
 
 function koZoom(dir) {
-  KO_FIT = false;                                     // manual zoom overrides fit
+  KO_FIT = false;
   const step = dir > 0 ? 1.15 : 1 / 1.15;
-  KO_ZOOM = Math.min(1.6, Math.max(0.25, +(KO_ZOOM * step).toFixed(3)));
+  KO_ZOOM = Math.min(1.6, Math.max(0.15, +(KO_ZOOM * step).toFixed(3)));
   applyKoZoom();
 }
 
-// Run after a (re)render or when the KO tab opens: fit on desktop, else restore.
 function koAutoFit() {
   const panel = document.getElementById('panel-ko');
   if (!panel || !panel.classList.contains('on')) return;
-  if (koIsDesktop() && KO_FIT) koFit();
+  if (KO_FIT) koFit();
   else applyKoZoom();
 }
 
-// Draw SVG connector lines between each match and the next-round match it feeds.
-// Must run while the Knockout panel is visible (hidden elements have no layout).
 function drawKOConnectors() {
   const panel = document.getElementById('panel-ko');
   const cont = document.getElementById('bracketContainer');
   const svg = document.getElementById('koSvg');
-  if (!panel || !panel.classList.contains('on') || !cont || !svg) return;
+  const transformWrap = document.getElementById('koTransform');
+  if (!panel || !panel.classList.contains('on') || !cont || !svg || !transformWrap) return;
 
-  // Measure at natural scale (zoom 1) so coordinates are zoom-independent; the
-  // svg and columns then scale together uniformly when zoom is reapplied.
-  cont.style.zoom = 1;
+  transformWrap.style.transform = 'none';
 
-  const w = cont.scrollWidth, h = cont.scrollHeight;
-  svg.setAttribute('width', w);
-  svg.setAttribute('height', h);
-  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  KO_NATURAL_W = cont.scrollWidth;
+  KO_NATURAL_H = cont.scrollHeight;
+
+  svg.setAttribute('width', KO_NATURAL_W);
+  svg.setAttribute('height', KO_NATURAL_H);
+  svg.setAttribute('viewBox', `0 0 ${KO_NATURAL_W} ${KO_NATURAL_H}`);
   svg.innerHTML = '';
 
   const cr = cont.getBoundingClientRect();
   const pt = (el, side) => {
     const r = el.getBoundingClientRect();
     const x = side === 'right' ? r.right : r.left;
-    return { x: x - cr.left + cont.scrollLeft, y: (r.top + r.bottom) / 2 - cr.top + cont.scrollTop };
+    return { x: x - cr.left, y: (r.top + r.bottom) / 2 - cr.top };
   };
 
   KO_EDGES.forEach(([childId, parentId, advanced, kind]) => {
@@ -1053,15 +1067,12 @@ function drawKOConnectors() {
     svg.appendChild(path);
   });
 
-  applyKoZoom();   // restore the user's / fitted zoom level
+  koAutoFit();
 }
 
 // ══════════════════════════════════════════════════════════
 // HORIZONTAL CALENDAR STRIP LOGIC
 // ══════════════════════════════════════════════════════════
-// The active schedule filter, remembered across the 60s auto-refresh so the
-// view doesn't snap back. 'TODAY' is the default sentinel (resolves to the
-// current date); otherwise it's a concrete date string or 'ALL'.
 let CURRENT_FILTER = 'TODAY';
 
 function setupDateFilter() {
@@ -1085,17 +1096,12 @@ function setupDateFilter() {
     }
   });
 
-  // Floating "All days" button — pinned to the right of the strip (sticky), so
-  // it stays reachable while the day chips scroll underneath it.
   html += `<button class="cal-all" id="calAllBtn" onclick="filterDays('ALL')">Full<br>Schedule</button>`;
-
   strip.innerHTML = html;
   applyFilter();
   scrollCalToToday();
 }
 
-// Resolve the stored filter into a concrete value: the today sentinel becomes
-// today's date if it has fixtures, otherwise we fall back to showing everything.
 function resolveFilter() {
   if (CURRENT_FILTER === 'ALL') return 'ALL';
   if (CURRENT_FILTER === 'TODAY') {
@@ -1105,7 +1111,6 @@ function resolveFilter() {
   return CURRENT_FILTER;
 }
 
-// Apply the current filter to chips + rows. Safe to call after every rebuild.
 function applyFilter() {
   const val = resolveFilter();
   document.querySelectorAll('#calStrip .dc').forEach(el =>
@@ -1122,17 +1127,12 @@ function filterDays(filterVal) {
   applyFilter();
 }
 
-// Scroll the calendar strip so today sits near the LEFT — with yesterday just
-// before it — rather than centered. This keeps today clearly visible and leaves
-// the right side (and the floating "Full Schedule" button) uncrowded on mobile.
-// Runs whenever the strip is (re)built or the Schedule tab is opened (offsetLeft
-// is 0 while the panel is hidden, so we re-run there).
 function scrollCalToToday() {
   const strip = document.getElementById('calStrip');
   if (!strip) return;
   const el = strip.querySelector('.dc.today');
   if (!el || !el.offsetWidth) return;
-  const prev = el.previousElementSibling;          // yesterday's chip, if any
+  const prev = el.previousElementSibling;
   const anchor = prev && prev.classList.contains('dc') ? prev : el;
   strip.scrollTo({ left: Math.max(0, anchor.offsetLeft - 4), behavior: 'smooth' });
 }
@@ -1178,10 +1178,6 @@ async function loadData(){
     if(!res.ok) throw new Error('Data not ready yet');
     
     const fetchedData = await res.json();
-
-    // A "real" team belongs to a group. Placeholder slots (e.g. "Round of 32 5
-    // Winner", "Semifinal 1 Loser") or empty names are NOT real teams. ESPN
-    // leaves the round/"stage" field blank, so we must not rely on it.
     const isPlaceholder = s => !s || /winner|loser|round of|quarter|semi|final|\btbd\b|place/i.test(s);
 
     MATCHES = fetchedData.map(m => {
@@ -1191,8 +1187,6 @@ async function loadData(){
         const g1 = ph1 ? '?' : getGroup(m.t1);
         const g2 = ph2 ? '?' : getGroup(m.t2);
 
-        // A group match is two real teams from the SAME group. Anything else
-        // (a cross-group pairing or a placeholder slot) is a knockout match.
         const isGroupMatch = !ph1 && !ph2 && g1 !== '?' && g1 === g2;
 
         return {
@@ -1211,11 +1205,6 @@ async function loadData(){
         };
     }).sort((a,b) => a.dt - b.dt);
 
-    // The 2026 knockout schedule is fixed: 16 Round-of-32, 8 Round-of-16,
-    // 4 Quarterfinals, 2 Semifinals, then the Final (the third-place match is
-    // handled separately). Sorted chronologically, the bracket matches fall in
-    // exactly that order, so we assign the round by position. This is immune to
-    // ESPN leaving the "stage" field blank (the original all-TBD bug).
     const STAGE_LABELS = {1:'Round of 32',2:'Round of 16',3:'Quarterfinal',4:'Semifinal',5:'Final'};
     MATCHES.filter(m => m.isKO && !m.isThird).forEach((m,i) => {
         m.stageLevel = i < 16 ? 1 : i < 24 ? 2 : i < 28 ? 3 : i < 30 ? 4 : 5;
@@ -1257,8 +1246,6 @@ function koRedrawSoon(delay) {
   koResizeTimer = setTimeout(() => { drawKOConnectors(); koAutoFit(); }, delay);
 }
 window.addEventListener('resize', () => koRedrawSoon(120));
-// Rotation needs a longer settle before re-measuring, then a clean redraw so the
-// connector lines realign to the new layout instead of drifting.
 window.addEventListener('orientationchange', () => koRedrawSoon(350));
 
 let lastDay = "";
