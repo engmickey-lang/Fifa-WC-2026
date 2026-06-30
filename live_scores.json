@@ -998,9 +998,12 @@
     "t2": "Norway",
     "utc": "2026-06-30T17:00Z",
     "v": "Arlington, Texas",
-    "s": null,
+    "s": [
+      0,
+      0
+    ],
     "p": null,
-    "status": "NS",
+    "status": "LIVE",
     "stage": ""
   },
   {
