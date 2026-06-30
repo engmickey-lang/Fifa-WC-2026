@@ -137,6 +137,37 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
   padding: 4px 0 16px 0;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--bdr);
+  position: relative;
+}
+/* Floating "All days" toggle: sticks to the right edge while chips scroll. */
+.cal-all {
+  position: sticky;
+  right: 0;
+  flex-shrink: 0;
+  align-self: stretch;
+  z-index: 6;
+  cursor: pointer;
+  min-width: 64px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--bdr2);
+  background: var(--s2);
+  color: var(--gr);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1.2;
+  box-shadow: -14px 0 16px -4px var(--bg);
+  transition: all 0.2s;
+}
+.cal-all:hover { background: var(--s1); color: var(--w); border-color: var(--gr); }
+.cal-all.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+  box-shadow: -14px 0 16px -4px var(--bg), 0 4px 12px rgba(244,196,48,0.2);
 }
 .dc {
   flex-shrink: 0;
@@ -164,6 +195,9 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .dc-day { font-family: 'Bebas Neue'; font-size: 24px; color: var(--w); line-height: 1; letter-spacing: 1px; }
 .dc.active .dc-dow { color: rgba(0,0,0,0.6); }
 .dc.active .dc-day { color: #000; }
+.dc.today { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 4px 14px rgba(244,196,48,0.15); }
+.dc-now { margin-top: 4px; font-size: 8px; font-weight: 800; letter-spacing: 0.8px; color: #000; background: var(--gold); border-radius: 6px; padding: 1px 5px; line-height: 1.4; }
+.dc.active.today .dc-now { background: #000; color: var(--gold); }
 
 @media (min-width: 768px) {
   .tabs, .cal-strip { scrollbar-width: thin; scrollbar-color: var(--dim) transparent; }
@@ -310,12 +344,34 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   gap: 16px;
   overflow-x: auto;
   padding: 10px 10px 40px;
+  position: relative;
+}
+.ko-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.ko-line { fill: none; stroke: var(--dim); stroke-width: 1.5; opacity: .5; }
+.ko-line.adv { stroke: var(--gold); stroke-width: 2.5; opacity: .95; filter: drop-shadow(0 0 3px rgba(244,196,48,.4)); }
+.ko-line.loser { stroke: var(--red); stroke-width: 1.5; opacity: .4; stroke-dasharray: 4 4; }
+.third-wrap { margin-top: 26px; width: 100%; }
+.third-lbl {
+  text-align: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--gr);
+  margin-bottom: 8px;
 }
 .bracket-col {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   width: 180px;
+  position: relative;
+  z-index: 1;
 }
 .b-title {
   text-align: center;
@@ -695,99 +751,111 @@ function renderSchedule(){
   document.getElementById('sched-content').innerHTML=h;
 }
 
+let KO_EDGES = [];   // [childCardId, parentCardId, advanced?] pairs for connector lines
+
 function renderKO() {
-  const koMatches = MATCHES.filter(m => m.isKO);
+  const ko = MATCHES.filter(m => m.isKO && !m.isThird);
+  const r32 = ko.filter(m => m.stageLevel === 1);
+  const r16 = ko.filter(m => m.stageLevel === 2);
+  const qf  = ko.filter(m => m.stageLevel === 3);
+  const sf  = ko.filter(m => m.stageLevel === 4);
+  const fin = ko.filter(m => m.stageLevel === 5);
+  const prevOf = { 5: sf, 4: qf, 3: r16, 2: r32 };
 
-  // Group Matches by precise Stage Level
-  let r32 = koMatches.filter(m => m.stageLevel === 1);
-  let r16 = koMatches.filter(m => m.stageLevel === 2);
-  let qf = koMatches.filter(m => m.stageLevel === 3);
-  let sf = koMatches.filter(m => m.stageLevel === 4);
-  let fin = koMatches.filter(m => m.stageLevel === 5);
-
-  // Pad arrays to exact bracket slot requirements
-  const pad = (arr, len) => {
-     const res = [...arr];
-     while(res.length < len) res.push(null);
-     return res.slice(0, len);
-  };
-  r32 = pad(r32, 16);
-  r16 = pad(r16, 8);
-  qf = pad(qf, 4);
-  sf = pad(sf, 2);
-  fin = pad(fin, 1);
-
-  // --- AUTO ADVANCE LOGIC: Resolves the winner including penalties! ---
-  const resolveWinner = (m) => {
-    if(!m || m.t1 === "TBD") return "TBD";
-    const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
-    if(!done) return "TBD";
-    const s1 = m.s ? m.s[0] : 0;
-    const s2 = m.s ? m.s[1] : 0;
-    const p1 = m.p ? m.p[0] : 0;
-    const p2 = m.p ? m.p[1] : 0;
+  // Winner of a completed match (handles penalties).
+  const winnerOf = (m) => {
+    if (!m || !m.s || !["FT","AET","PEN"].includes(m.status)) return null;
+    const [s1, s2] = m.s, [p1, p2] = m.p || [0, 0];
     if (s1 > s2 || (s1 === s2 && p1 > p2)) return m.t1;
     if (s2 > s1 || (s1 === s2 && p2 > p1)) return m.t2;
-    return "TBD";
+    return null;
   };
 
-  // Push winners physically into the next round if API hasn't done it yet
-  for(let i=0; i<8; i++) {
-      if(!r16[i]) r16[i] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
-      const w1 = resolveWinner(r32[i*2]);
-      const w2 = resolveWinner(r32[i*2+1]);
-      if(r16[i].t1 === "TBD" || r16[i].fake) r16[i].t1 = w1;
-      if(r16[i].t2 === "TBD" || r16[i].fake) r16[i].t2 = w2;
-  }
-  for(let i=0; i<4; i++) {
-      if(!qf[i]) qf[i] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
-      const w1 = resolveWinner(r16[i*2]);
-      const w2 = resolveWinner(r16[i*2+1]);
-      if(qf[i].t1 === "TBD" || qf[i].fake) qf[i].t1 = w1;
-      if(qf[i].t2 === "TBD" || qf[i].fake) qf[i].t2 = w2;
-  }
-  for(let i=0; i<2; i++) {
-      if(!sf[i]) sf[i] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
-      const w1 = resolveWinner(qf[i*2]);
-      const w2 = resolveWinner(qf[i*2+1]);
-      if(sf[i].t1 === "TBD" || sf[i].fake) sf[i].t1 = w1;
-      if(sf[i].t2 === "TBD" || sf[i].fake) sf[i].t2 = w2;
-  }
-  if(!fin[0]) fin[0] = { t1: "TBD", t2: "TBD", status: "NS", fake: true };
-  if(fin[0].t1 === "TBD" || fin[0].fake) fin[0].t1 = resolveWinner(sf[0]);
-  if(fin[0].t2 === "TBD" || fin[0].fake) fin[0].t2 = resolveWinner(sf[1]);
-  // ------------------------------------------------------------------
+  // Resolve which previous-round match feeds a given slot. ESPN slots are
+  // either a numbered reference ("Round of 32 5 Winner" → match #5) or, once
+  // played, the actual qualified team — which we trace back to the match it won.
+  const parentFor = (slotRaw, prev) => {
+    const num = (String(slotRaw).match(/(\d+)\s*Winner/i) || [])[1];
+    if (num) return prev[(+num) - 1] || null;
+    const team = canon(slotRaw);
+    return prev.find(pm => { const w = winnerOf(pm); return w && canon(w) === team; }) || null;
+  };
 
-  const makeCard = (m) => {
+  // Build the bracket tree from the Final down to the Round of 32 so columns
+  // can be ordered to match the real feeders (no crossed lines).
+  const buildNode = (m, lvl) => {
+    if (!m || lvl === 1) return { m, lvl, kids: [] };
+    const prev = prevOf[lvl];
+    return { m, lvl, kids: [buildNode(parentFor(m.rawT1, prev), lvl - 1),
+                            buildNode(parentFor(m.rawT2, prev), lvl - 1)] };
+  };
+  const root = fin[0] ? buildNode(fin[0], 5) : { m: null, lvl: 5, kids: [] };
+
+  // Assign a stable DOM id to every card and record parent→child edges.
+  let idc = 0;
+  KO_EDGES = [];
+  const tag = (node) => {
+    if (!node) return;
+    if (node.m) node.id = 'koc' + (idc++);
+    node.kids.forEach(k => {
+      tag(k);
+      if (node.m && k && k.m) KO_EDGES.push([k.id, node.id, winnerOf(k.m) ? 1 : 0]);
+    });
+  };
+  tag(root);
+
+  // Third-place play-off: the two semifinal LOSERS drop down into it. Reuse the
+  // semifinal cards (root.kids) as its feeders, drawn as "loser" connectors.
+  const third = MATCHES.find(m => m.isThird) || null;
+  let thirdNode = null;
+  if (third) {
+    thirdNode = { m: third, id: 'koc' + (idc++) };
+    [root.kids[0], root.kids[1]].forEach(sfNode => {
+      if (sfNode && sfNode.m) KO_EDGES.push([sfNode.id, thirdNode.id, 0, 'loser']);
+    });
+  }
+
+  // Depth-first collect (kids[0] before kids[1]) → vertical order per level.
+  const collect = (node, acc) => {
+    if (!node) return;
+    (acc[node.lvl] = acc[node.lvl] || []).push(node);
+    node.kids.forEach(k => collect(k, acc));
+  };
+  const left = {}, right = {};
+  if (root.kids[0]) collect(root.kids[0], left);
+  if (root.kids[1]) collect(root.kids[1], right);
+
+  const makeCard = (node) => {
+    const m = node && node.m;
+    const id = node && node.id ? ` id="${node.id}"` : '';
     if (!m || (m.t1 === "TBD" && m.t2 === "TBD" && !m.s)) {
-      return `<div class="b-match placeholder">
-                <div class="b-meta">TBD</div>
+      return `<div class="b-match placeholder"${id}>
+                <div class="b-meta">${m && m.dt ? fmtD(m.dt) : 'TBD'}</div>
                 <div class="b-team tbd"><span>TBD</span><span class="b-score">-</span></div>
                 <div class="b-team tbd"><span>TBD</span><span class="b-score">-</span></div>
               </div>`;
     }
     const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
     const live = !done && m.status !== "NS" && isLiveNow(m.status, m.dt);
-    
+
     const s1 = m.s ? m.s[0] : (live ? 0 : '');
     const s2 = m.s ? m.s[1] : (live ? 0 : '');
     const p1 = m.p ? `<span class="b-pen">(${m.p[0]})</span>` : '';
     const p2 = m.p ? `<span class="b-pen">(${m.p[1]})</span>` : '';
-    
-    let w1 = false;
-    let w2 = false;
+
+    let w1 = false, w2 = false;
     if (done && m.s) {
        if (m.s[0] > m.s[1] || (m.s[0] === m.s[1] && m.p && m.p[0] > m.p[1])) w1 = true;
        if (m.s[1] > m.s[0] || (m.s[0] === m.s[1] && m.p && m.p[1] > m.p[0])) w2 = true;
     }
-    
+
     const n1 = m.t1 === "TBD" ? "TBD" : `${f(m.t1)} ${canon(m.t1)}`;
     const n2 = m.t2 === "TBD" ? "TBD" : `${f(m.t2)} ${canon(m.t2)}`;
-    
+
     let dtStr = "TBD";
     if (m.dt) dtStr = live ? '<span style="color:var(--live)">🔴 LIVE</span>' : fmtD(m.dt);
 
-    return `<div class="b-match ${live ? 'live' : ''} ${done ? 'done' : ''}">
+    return `<div class="b-match ${live ? 'live' : ''} ${done ? 'done' : ''}"${id}>
               <div class="b-meta">${dtStr}</div>
               <div class="b-team ${w1 ? 'winner' : ''} ${m.t1==='TBD'?'tbd':''}">
                 <span>${n1}</span><span class="b-score">${s1}${p1}</span>
@@ -798,82 +866,160 @@ function renderKO() {
             </div>`;
   };
 
-  const makeCol = (matches, title, count) => {
+  const makeCol = (nodes, title) => {
     let h = `<div class="bracket-col"><div class="b-title">${title}</div><div class="b-slots">`;
-    for(let i=0; i<count; i++) {
-      h += makeCard(matches[i]); 
-    }
+    (nodes || []).forEach(n => { h += makeCard(n); });
     h += `</div></div>`;
     return h;
   };
 
-  let html = `<div class="note">🕐 Dubai Time · Swipe horizontally to view Left and Right converging brackets ➔</div>`;
+  let html = `<div class="note">🕐 Dubai Time · Lines trace each winner into its next match · Swipe horizontally ➔</div>`;
   html += `<div class="converging-bracket" id="bracketContainer">`;
+  html += `<svg class="ko-svg" id="koSvg"></svg>`;
 
-  html += makeCol(r32.slice(0, 8), "ROUND OF 32", 8);
-  html += makeCol(r16.slice(0, 4), "ROUND OF 16", 4);
-  html += makeCol(qf.slice(0, 2), "QUARTERFINALS", 2);
-  html += makeCol(sf.slice(0, 1), "SEMIFINALS", 1);
+  html += makeCol(left[1], "ROUND OF 32");
+  html += makeCol(left[2], "ROUND OF 16");
+  html += makeCol(left[3], "QUARTERFINALS");
+  html += makeCol(left[4], "SEMIFINALS");
 
   html += `<div class="bracket-col b-center">
              <div class="b-title" style="font-size:24px;">🏆 FINAL</div>
              <div class="b-slots">
                <div class="b-center-inner">
                  <img src="trophy.png" style="height:120px; margin-bottom:20px; filter:drop-shadow(0 0 20px rgba(244,196,48,0.3));">
-                 ${makeCard(fin[0])}
+                 ${makeCard(root)}
+                 ${thirdNode ? `<div class="third-wrap">
+                     <div class="third-lbl">🥉 Third-Place Play-off</div>
+                     ${makeCard(thirdNode)}
+                   </div>` : ''}
                </div>
              </div>
            </div>`;
 
-  html += makeCol(sf.slice(1, 2), "SEMIFINALS", 1);
-  html += makeCol(qf.slice(2, 4), "QUARTERFINALS", 2);
-  html += makeCol(r16.slice(4, 8), "ROUND OF 16", 4);
-  html += makeCol(r32.slice(8, 16), "ROUND OF 32", 8);
+  html += makeCol(right[4], "SEMIFINALS");
+  html += makeCol(right[3], "QUARTERFINALS");
+  html += makeCol(right[2], "ROUND OF 16");
+  html += makeCol(right[1], "ROUND OF 32");
 
   html += `</div>`;
   document.getElementById('panel-ko').innerHTML = html;
+  requestAnimationFrame(drawKOConnectors);
+}
+
+// Draw SVG connector lines between each match and the next-round match it feeds.
+// Must run while the Knockout panel is visible (hidden elements have no layout).
+function drawKOConnectors() {
+  const panel = document.getElementById('panel-ko');
+  const cont = document.getElementById('bracketContainer');
+  const svg = document.getElementById('koSvg');
+  if (!panel || !panel.classList.contains('on') || !cont || !svg) return;
+
+  const w = cont.scrollWidth, h = cont.scrollHeight;
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.innerHTML = '';
+
+  const cr = cont.getBoundingClientRect();
+  const pt = (el, side) => {
+    const r = el.getBoundingClientRect();
+    const x = side === 'right' ? r.right : r.left;
+    return { x: x - cr.left + cont.scrollLeft, y: (r.top + r.bottom) / 2 - cr.top + cont.scrollTop };
+  };
+
+  KO_EDGES.forEach(([childId, parentId, advanced, kind]) => {
+    const c = document.getElementById(childId), p = document.getElementById(parentId);
+    if (!c || !p) return;
+    const cRect = c.getBoundingClientRect(), pRect = p.getBoundingClientRect();
+    const childLeftOfParent = cRect.left < pRect.left;
+    const s = childLeftOfParent ? pt(c, 'right') : pt(c, 'left');
+    const e = childLeftOfParent ? pt(p, 'left')  : pt(p, 'right');
+    const dir = e.x > s.x ? 1 : -1;
+    const cc = Math.max(18, Math.abs(e.x - s.x) * 0.5);
+    const d = `M ${s.x} ${s.y} C ${s.x + dir * cc} ${s.y}, ${e.x - dir * cc} ${e.y}, ${e.x} ${e.y}`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', kind === 'loser' ? 'ko-line loser' : advanced ? 'ko-line adv' : 'ko-line');
+    svg.appendChild(path);
+  });
 }
 
 // ══════════════════════════════════════════════════════════
 // HORIZONTAL CALENDAR STRIP LOGIC
 // ══════════════════════════════════════════════════════════
+// The active schedule filter, remembered across the 60s auto-refresh so the
+// view doesn't snap back. 'TODAY' is the default sentinel (resolves to the
+// current date); otherwise it's a concrete date string or 'ALL'.
+let CURRENT_FILTER = 'TODAY';
+
 function setupDateFilter() {
   const strip = document.getElementById("calStrip");
   if (!strip) return;
-  
-  let html = `<div class="dc active" data-date="ALL" onclick="filterDays('ALL', this)">
-                <span class="dc-dow" style="margin-top:2px;">Show</span>
-                <span class="dc-day">ALL</span>
-              </div>`;
-  
+
   const uniqueDates = [...new Set(MATCHES.map(m => fmtD(m.dt)))];
-  
+  const todayStr = fmtD(now());
+
+  let html = '';
   uniqueDates.forEach((dateStr) => {
-    const parts = dateStr.replace(',', '').split(' '); 
-    
+    const parts = dateStr.replace(',', '').split(' ');
+
     if(parts.length === 3) {
-      html += `<div class="dc" data-date="${dateStr}" onclick="filterDays('${dateStr}', this)">
+      const isTodayChip = dateStr === todayStr;
+      html += `<div class="dc${isTodayChip ? ' today' : ''}" data-date="${dateStr}" onclick="filterDays('${dateStr}')">
                   <span class="dc-dow">${parts[0]} ${parts[1]}</span>
                   <span class="dc-day">${parts[2]}</span>
+                  ${isTodayChip ? '<span class="dc-now">TODAY</span>' : ''}
                </div>`;
     }
   });
-  
+
+  // Floating "All days" button — pinned to the right of the strip (sticky), so
+  // it stays reachable while the day chips scroll underneath it.
+  html += `<button class="cal-all" id="calAllBtn" onclick="filterDays('ALL')">All<br>Days</button>`;
+
   strip.innerHTML = html;
+  applyFilter();
+  scrollCalToToday();
 }
 
-function filterDays(filterVal, element) {
-  document.querySelectorAll('.dc').forEach(el => el.classList.remove('active'));
-  if(element) element.classList.add('active');
-  
-  const rows = document.querySelectorAll('#sched-content tbody tr');
-  rows.forEach(row => {
-    if (filterVal === "ALL" || row.getAttribute('data-date') === filterVal) {
-      row.style.display = ""; 
-    } else {
-      row.style.display = "none"; 
-    }
+// Resolve the stored filter into a concrete value: the today sentinel becomes
+// today's date if it has fixtures, otherwise we fall back to showing everything.
+function resolveFilter() {
+  if (CURRENT_FILTER === 'ALL') return 'ALL';
+  if (CURRENT_FILTER === 'TODAY') {
+    const t = fmtD(now());
+    return [...new Set(MATCHES.map(m => fmtD(m.dt)))].includes(t) ? t : 'ALL';
+  }
+  return CURRENT_FILTER;
+}
+
+// Apply the current filter to chips + rows. Safe to call after every rebuild.
+function applyFilter() {
+  const val = resolveFilter();
+  document.querySelectorAll('#calStrip .dc').forEach(el =>
+    el.classList.toggle('active', el.getAttribute('data-date') === val));
+  const allBtn = document.getElementById('calAllBtn');
+  if (allBtn) allBtn.classList.toggle('active', val === 'ALL');
+  document.querySelectorAll('#sched-content tbody tr').forEach(row => {
+    row.style.display = (val === 'ALL' || row.getAttribute('data-date') === val) ? '' : 'none';
   });
+}
+
+function filterDays(filterVal) {
+  CURRENT_FILTER = filterVal;
+  applyFilter();
+}
+
+// Center the calendar strip on today's chip so the user lands on the current
+// day without scrolling. Runs whenever the strip is (re)built or the Schedule
+// tab is opened (offsetLeft is 0 while the panel is hidden, so we re-run there).
+function scrollCalToToday() {
+  const strip = document.getElementById('calStrip');
+  if (!strip) return;
+  const el = strip.querySelector('.dc.today');
+  if (!el || !el.offsetWidth) return;
+  const target = el.offsetLeft - (strip.clientWidth / 2) + (el.offsetWidth / 2);
+  strip.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
 }
 
 function renderAll(){
@@ -917,31 +1063,50 @@ async function loadData(){
     if(!res.ok) throw new Error('Data not ready yet');
     
     const fetchedData = await res.json();
-    
+
+    // A "real" team belongs to a group. Placeholder slots (e.g. "Round of 32 5
+    // Winner", "Semifinal 1 Loser") or empty names are NOT real teams. ESPN
+    // leaves the round/"stage" field blank, so we must not rely on it.
+    const isPlaceholder = s => !s || /winner|loser|round of|quarter|semi|final|\btbd\b|place/i.test(s);
+
     MATCHES = fetchedData.map(m => {
         const d = toDt(m.utc);
-        const stageText = m.stage ? m.stage.toLowerCase() : "";
-        
-        // STRICT STAGE IDENTIFICATION TO PREVENT JUNK MATCHES
-        let stageLevel = 0;
-        if (stageText.includes("32")) stageLevel = 1;
-        else if (stageText.includes("16")) stageLevel = 2;
-        else if (stageText.includes("quarter")) stageLevel = 3;
-        else if (stageText.includes("semi")) stageLevel = 4;
-        else if (stageText.includes("final")) stageLevel = 5;
-        
-        const isKO = stageLevel > 0;
-            
+        const ph1 = isPlaceholder(m.t1);
+        const ph2 = isPlaceholder(m.t2);
+        const g1 = ph1 ? '?' : getGroup(m.t1);
+        const g2 = ph2 ? '?' : getGroup(m.t2);
+
+        // A group match is two real teams from the SAME group. Anything else
+        // (a cross-group pairing or a placeholder slot) is a knockout match.
+        const isGroupMatch = !ph1 && !ph2 && g1 !== '?' && g1 === g2;
+
         return {
             ...m,
             p: m.p || null,
-            g: getGroup(m.t1),
             dt: d,
-            isKO: isKO,
-            stageLevel: stageLevel,
-            stageLabel: m.stage || "Knockout Match"
+            t1: ph1 ? 'TBD' : m.t1,
+            t2: ph2 ? 'TBD' : m.t2,
+            rawT1: m.t1,
+            rawT2: m.t2,
+            g: isGroupMatch ? g1 : '?',
+            isKO: !isGroupMatch,
+            isThird: /loser/i.test(`${m.t1} ${m.t2}`),
+            stageLevel: 0,
+            stageLabel: ''
         };
     }).sort((a,b) => a.dt - b.dt);
+
+    // The 2026 knockout schedule is fixed: 16 Round-of-32, 8 Round-of-16,
+    // 4 Quarterfinals, 2 Semifinals, then the Final (the third-place match is
+    // handled separately). Sorted chronologically, the bracket matches fall in
+    // exactly that order, so we assign the round by position. This is immune to
+    // ESPN leaving the "stage" field blank (the original all-TBD bug).
+    const STAGE_LABELS = {1:'Round of 32',2:'Round of 16',3:'Quarterfinal',4:'Semifinal',5:'Final'};
+    MATCHES.filter(m => m.isKO && !m.isThird).forEach((m,i) => {
+        m.stageLevel = i < 16 ? 1 : i < 24 ? 2 : i < 28 ? 3 : i < 30 ? 4 : 5;
+        m.stageLabel = STAGE_LABELS[m.stageLevel];
+    });
+    MATCHES.filter(m => m.isThird).forEach(m => { m.stageLevel = 0; m.stageLabel = 'Third Place'; });
 
     STANDINGS=calcStandings(MATCHES);
     renderAll();
@@ -967,7 +1132,15 @@ function go(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('panel-'+name).classList.add('on');
   el.classList.add('on');
+  if(name==='ko') requestAnimationFrame(drawKOConnectors);
+  if(name==='sched') requestAnimationFrame(scrollCalToToday);
 }
+
+let koResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(koResizeTimer);
+  koResizeTimer = setTimeout(drawKOConnectors, 120);
+});
 
 let lastDay = "";
 
