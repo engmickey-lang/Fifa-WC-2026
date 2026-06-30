@@ -1011,9 +1011,12 @@
     "t2": "Sweden",
     "utc": "2026-06-30T21:00Z",
     "v": "East Rutherford, New Jersey",
-    "s": null,
+    "s": [
+      0,
+      0
+    ],
     "p": null,
-    "status": "NS",
+    "status": "LIVE",
     "stage": ""
   },
   {
