@@ -1,7 +1,7 @@
 import json
 import requests
 import sys
-import time  # <-- Added for Cache-Busting
+import time
 
 SCHEDULE_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=200"
 LIVE_URL_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
@@ -24,7 +24,6 @@ def main():
     print("Fetching World Cup schedule...")
     schedule_events = fetch_data(SCHEDULE_URL)
     
-    # THE MAGIC: Append the current UNIX timestamp to the URL to bypass ESPN's cache
     current_timestamp = int(time.time())
     live_url = f"{LIVE_URL_BASE}?_={current_timestamp}"
     
@@ -59,11 +58,14 @@ def main():
                 home_name = "Bosnia & Herzegovina"
             if away_name == "Bosnia-Herzegovina":
                 away_name = "Bosnia & Herzegovina"
-            # -------------------------------------
 
             status_obj = event.get("status", {}).get("type", {})
             state = status_obj.get("state", "pre")
             status_name = status_obj.get("name", "")
+            
+            # --- EXTRACT STAGE/ROUND NAME ---
+            notes = competition.get("notes", [])
+            stage_name = notes[0].get("headline", "") if notes else ""
             
             score = None
             status = "NS"
@@ -88,7 +90,8 @@ def main():
                 "utc": event.get("date"),
                 "v": venue,
                 "s": score,
-                "status": status
+                "status": status,
+                "stage": stage_name
             })
             
         except Exception as e:
