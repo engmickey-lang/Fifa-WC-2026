@@ -348,6 +348,8 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   gap: 6px;
   margin-bottom: 8px;
 }
+/* Touch devices swipe the bracket at natural scale — no zoom controls. */
+@media (pointer: coarse) { .ko-controls { display: none; } }
 .ko-zbtn {
   background: var(--s1);
   border: 1px solid var(--bdr2);
@@ -465,7 +467,12 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 @media(max-width:768px){
   .live-ticker { width: 100%; order: 3; justify-content: center; }
 }
-@media(max-width:560px){.tv{display:none;}.gg{grid-template-columns:1fr;}}
+@media(max-width:560px){.tv{display:none;}.gg{grid-template-columns:1fr;}
+  table.ft{min-width:0;}
+  table.ft thead th,table.ft tbody td{padding:7px 6px;}
+  .tm2{font-size:12px;}
+  .tdt{font-size:10px;white-space:normal;}
+}
 </style>
 </head>
 <body>
@@ -768,7 +775,7 @@ function renderSchedule(){
   let h=`<div class="note">🕐 Dubai Time (UTC+4) · ⭐ = Egypt · Dimmed = finished</div>
   <div class="sb"><div class="sb-ttl"><span class="sp sp-g">Tournament Schedule</span></div>
   <div class="sw"><table class="ft">
-    <thead><tr><th>#</th><th>Dubai Date · Time</th><th>Match</th><th>Stage</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
+    <thead><tr><th>Dubai Date · Time</th><th>Match</th><th>Stage</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
 
   MATCHES.forEach((m,i)=>{
     const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
@@ -782,10 +789,9 @@ function renderSchedule(){
     const dateStr = fmtD(m.dt); 
 
     h+=`<tr class="${done?'dr':''} ${eg?'er':''} ${live?'lr':''}" data-date="${dateStr}">
-      <td class="tn">${i+1}${eg?'⭐':''}</td>
       <td class="tdt">${dateStr} · <span class="ttime">${fmtT(m.dt)}</span>
         ${today?`<span style="font-size:9px;color:var(--gold);margin-left:4px;font-weight:700">TODAY</span>`:''}</td>
-      <td class="tm2">${fe(m.t1)} vs ${fe(m.t2)}</td>
+      <td class="tm2">${eg?'⭐ ':''}${fe(m.t1)} vs ${fe(m.t2)}</td>
       <td><span class="gt">${m.isKO ? m.stageLabel : `Group ${m.g}`}</span></td>
       <td class="tv">${m.v}</td>
       <td class="${scoreText?'tsc':'tv'}">${scoreText ? `${scoreText}${done?' ✅':` 🔴`}`: (live ? `0–0 🔴` : '—')}</td>
@@ -958,11 +964,15 @@ function renderKO() {
 
 // ── Knockout bracket zoom ──────────────────────────────────
 // Uses CSS `zoom` (reflows + adjusts scroll, unlike transform). Desktop fits
-// the whole bracket on open; the user can then zoom freely. Mobile keeps a
-// readable natural scale (a full 9-column bracket on a phone is illegible).
+// the whole bracket on open; the user can then zoom freely. Touch devices keep a
+// readable natural scale and swipe — we deliberately never apply `zoom` there,
+// because mobile Safari doesn't scale the absolutely-positioned connector SVG in
+// lockstep with the columns, which made the lines drift (esp. on rotate).
+// Requiring a fine pointer means a phone in landscape (width ≥ 768) is still
+// treated as mobile.
 let KO_ZOOM = 1;
 let KO_FIT = true;                                   // true = follow auto-fit
-const koIsDesktop = () => window.innerWidth >= 768;
+const koIsDesktop = () => window.matchMedia('(min-width: 768px) and (pointer: fine)').matches;
 
 function applyKoZoom() {
   const cont = document.getElementById('bracketContainer');
@@ -1107,16 +1117,19 @@ function filterDays(filterVal) {
   applyFilter();
 }
 
-// Center the calendar strip on today's chip so the user lands on the current
-// day without scrolling. Runs whenever the strip is (re)built or the Schedule
-// tab is opened (offsetLeft is 0 while the panel is hidden, so we re-run there).
+// Scroll the calendar strip so today sits near the LEFT — with yesterday just
+// before it — rather than centered. This keeps today clearly visible and leaves
+// the right side (and the floating "Full Schedule" button) uncrowded on mobile.
+// Runs whenever the strip is (re)built or the Schedule tab is opened (offsetLeft
+// is 0 while the panel is hidden, so we re-run there).
 function scrollCalToToday() {
   const strip = document.getElementById('calStrip');
   if (!strip) return;
   const el = strip.querySelector('.dc.today');
   if (!el || !el.offsetWidth) return;
-  const target = el.offsetLeft - (strip.clientWidth / 2) + (el.offsetWidth / 2);
-  strip.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  const prev = el.previousElementSibling;          // yesterday's chip, if any
+  const anchor = prev && prev.classList.contains('dc') ? prev : el;
+  strip.scrollTo({ left: Math.max(0, anchor.offsetLeft - 4), behavior: 'smooth' });
 }
 
 function renderAll(){
@@ -1234,10 +1247,14 @@ function go(name,el){
 }
 
 let koResizeTimer;
-window.addEventListener('resize', () => {
+function koRedrawSoon(delay) {
   clearTimeout(koResizeTimer);
-  koResizeTimer = setTimeout(() => { drawKOConnectors(); koAutoFit(); }, 120);
-});
+  koResizeTimer = setTimeout(() => { drawKOConnectors(); koAutoFit(); }, delay);
+}
+window.addEventListener('resize', () => koRedrawSoon(120));
+// Rotation needs a longer settle before re-measuring, then a clean redraw so the
+// connector lines realign to the new layout instead of drifting.
+window.addEventListener('orientationchange', () => koRedrawSoon(350));
 
 let lastDay = "";
 
