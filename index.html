@@ -75,21 +75,24 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .live-ticker {
   display: none;
   margin: 0 auto;
-  background: var(--rdbg);
-  border: 1px solid rgba(255,48,48,.2);
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--w);
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .live-ticker.active { display: flex; }
-.ticker-match { display: flex; align-items: center; gap: 8px; }
-.ticker-dot { color: var(--live); font-size: 10px; animation: blink 1.2s ease-in-out infinite; }
-.ticker-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold2); font-size: 14px; }
-.ticker-div { color: rgba(255,255,255,0.1); font-size: 14px; }
+.ticker-match {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--rdbg);
+  border: 1px solid rgba(255,48,48,.28);
+  border-radius: 999px;
+  padding: 3px 11px;
+}
+.ticker-dot { color: var(--live); font-size: 9px; animation: blink 1.2s ease-in-out infinite; }
+.ticker-flag { font-size: 16px; line-height: 1; }
+.ticker-code { font-weight: 700; font-size: 12px; letter-spacing: .5px; color: var(--w); }
+.ticker-score { font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--gold2); font-size: 14px; margin: 0 1px; }
 .sbar-r{margin-left:auto;display:flex;align-items:center;gap:14px;}
 .clk{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
@@ -338,6 +341,29 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 }
 
 /* CONVERGING KNOCKOUT BRACKET */
+.ko-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.ko-zbtn {
+  background: var(--s1);
+  border: 1px solid var(--bdr2);
+  color: var(--gr);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 34px;
+  transition: all 0.2s;
+}
+.ko-zbtn:hover { background: var(--s2); color: var(--w); border-color: var(--gr); }
+.ko-zbtn.ko-fit { color: var(--gold); border-color: var(--gbdr); }
+#koZoomLbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim); min-width: 42px; text-align: center; }
 .converging-bracket {
   display: flex;
   align-items: stretch;
@@ -514,6 +540,23 @@ const FL={
 const f  = n => FL[n]||'🏳';
 const fe = n => `${f(n)} ${n}`;
 
+// FIFA 3-letter country codes — compact, recognizable labels for the live ticker.
+const ABBR={
+  'Mexico':'MEX','South Africa':'RSA','South Korea':'KOR','Korea Republic':'KOR','Czechia':'CZE','Czech Republic':'CZE',
+  'Canada':'CAN','Bosnia & Herzegovina':'BIH','Bosnia and Herzegovina':'BIH','Qatar':'QAT','Switzerland':'SUI',
+  'Brazil':'BRA','Morocco':'MAR','Haiti':'HAI','Scotland':'SCO',
+  'USA':'USA','United States':'USA','Paraguay':'PAR','Australia':'AUS','Türkiye':'TUR','Turkey':'TUR',
+  'Germany':'GER','Curaçao':'CUW','Curacao':'CUW',"Côte d'Ivoire":'CIV','Ivory Coast':'CIV','Ecuador':'ECU',
+  'Netherlands':'NED','Japan':'JPN','Sweden':'SWE','Tunisia':'TUN',
+  'Belgium':'BEL','Egypt':'EGY','Iran':'IRN','IR Iran':'IRN','New Zealand':'NZL',
+  'Spain':'ESP','Cape Verde':'CPV','Cabo Verde':'CPV','Saudi Arabia':'KSA','Uruguay':'URU',
+  'France':'FRA','Senegal':'SEN','Iraq':'IRQ','Norway':'NOR',
+  'Argentina':'ARG','Algeria':'ALG','Austria':'AUT','Jordan':'JOR',
+  'Portugal':'POR','DR Congo':'COD','Congo DR':'COD','Colombia':'COL','Uzbekistan':'UZB',
+  'England':'ENG','Croatia':'CRO','Ghana':'GHA','Panama':'PAN'
+};
+const ab = n => ABBR[n] || ABBR[canon(n)] || (n||'').slice(0,3).toUpperCase();
+
 function canon(n){
   const MAP={
     'Czech Republic':'Czechia','Turkey':'Türkiye','Cabo Verde':'Cape Verde',
@@ -610,15 +653,16 @@ function renderTicker(){
   });
 
   if(liveM.length > 0){
+    // Each live match is a self-contained pill (flag + 3-letter code + score),
+    // so concurrent matches read as separate cards instead of one stacked blur.
     let h = '';
-    liveM.forEach((m, idx) => {
+    liveM.forEach((m) => {
       const s = m.s ? `${m.s[0]}–${m.s[1]}` : `0–0`;
-      if(idx > 0) h += `<span class="ticker-div">|</span>`;
-      h += `<div class="ticker-match">
-              <span class="ticker-dot">●</span> 
-              <span>${f(m.t1)} ${canon(m.t1)}</span>
+      h += `<div class="ticker-match" title="${canon(m.t1)} vs ${canon(m.t2)}">
+              <span class="ticker-dot">●</span>
+              <span class="ticker-flag">${f(m.t1)}</span><span class="ticker-code">${ab(m.t1)}</span>
               <span class="ticker-score">${s}</span>
-              <span>${canon(m.t2)} ${f(m.t2)}</span>
+              <span class="ticker-code">${ab(m.t2)}</span><span class="ticker-flag">${f(m.t2)}</span>
             </div>`;
     });
     ticker.innerHTML = h;
@@ -873,7 +917,13 @@ function renderKO() {
     return h;
   };
 
-  let html = `<div class="note">🕐 Dubai Time · Lines trace each winner into its next match · Swipe horizontally ➔</div>`;
+  let html = `<div class="note">🕐 Dubai Time · Lines trace each winner into its next match</div>`;
+  html += `<div class="ko-controls">
+             <button class="ko-zbtn" onclick="koZoom(-1)" aria-label="Zoom out">−</button>
+             <span id="koZoomLbl">100%</span>
+             <button class="ko-zbtn" onclick="koZoom(1)" aria-label="Zoom in">+</button>
+             <button class="ko-zbtn ko-fit" onclick="koFit()">⤢ Fit</button>
+           </div>`;
   html += `<div class="converging-bracket" id="bracketContainer">`;
   html += `<svg class="ko-svg" id="koSvg"></svg>`;
 
@@ -903,7 +953,48 @@ function renderKO() {
 
   html += `</div>`;
   document.getElementById('panel-ko').innerHTML = html;
-  requestAnimationFrame(drawKOConnectors);
+  requestAnimationFrame(() => { drawKOConnectors(); koAutoFit(); });
+}
+
+// ── Knockout bracket zoom ──────────────────────────────────
+// Uses CSS `zoom` (reflows + adjusts scroll, unlike transform). Desktop fits
+// the whole bracket on open; the user can then zoom freely. Mobile keeps a
+// readable natural scale (a full 9-column bracket on a phone is illegible).
+let KO_ZOOM = 1;
+let KO_FIT = true;                                   // true = follow auto-fit
+const koIsDesktop = () => window.innerWidth >= 768;
+
+function applyKoZoom() {
+  const cont = document.getElementById('bracketContainer');
+  if (cont) cont.style.zoom = KO_ZOOM;
+  const lbl = document.getElementById('koZoomLbl');
+  if (lbl) lbl.textContent = Math.round(KO_ZOOM * 100) + '%';
+}
+
+function koFit() {
+  const panel = document.getElementById('panel-ko');
+  const cont = document.getElementById('bracketContainer');
+  if (!panel || !cont || !panel.classList.contains('on')) return;
+  cont.style.zoom = 1;                                // measure at natural scale
+  const avail = cont.clientWidth, natural = cont.scrollWidth;
+  KO_ZOOM = natural > avail ? Math.max(0.25, +(avail / natural).toFixed(3)) : 1;
+  KO_FIT = true;
+  applyKoZoom();
+}
+
+function koZoom(dir) {
+  KO_FIT = false;                                     // manual zoom overrides fit
+  const step = dir > 0 ? 1.15 : 1 / 1.15;
+  KO_ZOOM = Math.min(1.6, Math.max(0.25, +(KO_ZOOM * step).toFixed(3)));
+  applyKoZoom();
+}
+
+// Run after a (re)render or when the KO tab opens: fit on desktop, else restore.
+function koAutoFit() {
+  const panel = document.getElementById('panel-ko');
+  if (!panel || !panel.classList.contains('on')) return;
+  if (koIsDesktop() && KO_FIT) koFit();
+  else applyKoZoom();
 }
 
 // Draw SVG connector lines between each match and the next-round match it feeds.
@@ -913,6 +1004,10 @@ function drawKOConnectors() {
   const cont = document.getElementById('bracketContainer');
   const svg = document.getElementById('koSvg');
   if (!panel || !panel.classList.contains('on') || !cont || !svg) return;
+
+  // Measure at natural scale (zoom 1) so coordinates are zoom-independent; the
+  // svg and columns then scale together uniformly when zoom is reapplied.
+  cont.style.zoom = 1;
 
   const w = cont.scrollWidth, h = cont.scrollHeight;
   svg.setAttribute('width', w);
@@ -942,6 +1037,8 @@ function drawKOConnectors() {
     path.setAttribute('class', kind === 'loser' ? 'ko-line loser' : advanced ? 'ko-line adv' : 'ko-line');
     svg.appendChild(path);
   });
+
+  applyKoZoom();   // restore the user's / fitted zoom level
 }
 
 // ══════════════════════════════════════════════════════════
@@ -975,7 +1072,7 @@ function setupDateFilter() {
 
   // Floating "All days" button — pinned to the right of the strip (sticky), so
   // it stays reachable while the day chips scroll underneath it.
-  html += `<button class="cal-all" id="calAllBtn" onclick="filterDays('ALL')">All<br>Days</button>`;
+  html += `<button class="cal-all" id="calAllBtn" onclick="filterDays('ALL')">Full<br>Schedule</button>`;
 
   strip.innerHTML = html;
   applyFilter();
@@ -1132,14 +1229,14 @@ function go(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('panel-'+name).classList.add('on');
   el.classList.add('on');
-  if(name==='ko') requestAnimationFrame(drawKOConnectors);
+  if(name==='ko') requestAnimationFrame(() => { drawKOConnectors(); koAutoFit(); });
   if(name==='sched') requestAnimationFrame(scrollCalToToday);
 }
 
 let koResizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(koResizeTimer);
-  koResizeTimer = setTimeout(drawKOConnectors, 120);
+  koResizeTimer = setTimeout(() => { drawKOConnectors(); koAutoFit(); }, 120);
 });
 
 let lastDay = "";
