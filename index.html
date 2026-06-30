@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8JSEWMGC79"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-8JSEWMGC79');
 </script>
 <meta charset="UTF-8">
@@ -15,13 +13,13 @@
 <title>FIFA World Cup 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   
-  <style>
+<style>
 /* Mobile adjustments for the signature */
 @media (max-width: 600px) {
   .signature {
     text-align: right;    
-    line-height: 1.2;     
-    z-index: 100;         
+    line-height: 1.2;    
+    z-index: 100;        
   }
 }
 
@@ -96,7 +94,7 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .clk{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-/* TABS (FIXED FOR MOBILE SCROLLING) */
+/* TABS */
 .tabs {
   display: flex;
   overflow-x: auto;
@@ -104,13 +102,13 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
   border-bottom: 1px solid var(--bdr);
   padding: 12px 16px;
   gap: 8px;
-  justify-content: flex-start; /* Safely aligns left on mobile so nothing cuts off */
+  justify-content: flex-start; 
   position: sticky;
   top: 0;
   z-index: 30;
 }
 @media (min-width: 600px) {
-  .tabs { justify-content: center; } /* Centers nicely only on larger screens */
+  .tabs { justify-content: center; } 
 }
 .tab {
   padding: 8px 16px;
@@ -123,7 +121,7 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
   border: 1px solid var(--bdr);
   border-radius: 20px;
   white-space: nowrap;
-  flex-shrink: 0; /* Prevents tabs from squishing */
+  flex-shrink: 0; 
   transition: all 0.2s;
   font-family: 'Inter';
   text-transform: uppercase;
@@ -131,7 +129,7 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .tab:hover { background: var(--s2); color: var(--w); }
 .tab.on { background: var(--gold); border-color: var(--gold); color: #000; }
 
-/* INTERACTIVE HORIZONTAL CALENDAR STRIP */
+/* CALENDAR STRIP */
 .cal-strip {
   display: flex;
   overflow-x: auto;
@@ -167,36 +165,16 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',sans-serif;font-siz
 .dc.active .dc-dow { color: rgba(0,0,0,0.6); }
 .dc.active .dc-day { color: #000; }
 
-/* DESKTOP VS MOBILE SCROLLBAR LOGIC */
 @media (min-width: 768px) {
-  /* Desktop: Show thin custom scrollbars */
-  .tabs, .cal-strip {
-    scrollbar-width: thin;
-    scrollbar-color: var(--dim) transparent;
-  }
-  .tabs::-webkit-scrollbar, .cal-strip::-webkit-scrollbar {
-    height: 6px;
-    display: block;
-  }
-  .tabs::-webkit-scrollbar-track, .cal-strip::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .tabs::-webkit-scrollbar-thumb, .cal-strip::-webkit-scrollbar-thumb {
-    background: var(--dim);
-    border-radius: 10px;
-  }
-  .tabs::-webkit-scrollbar-thumb:hover, .cal-strip::-webkit-scrollbar-thumb:hover {
-    background: var(--gr);
-  }
+  .tabs, .cal-strip { scrollbar-width: thin; scrollbar-color: var(--dim) transparent; }
+  .tabs::-webkit-scrollbar, .cal-strip::-webkit-scrollbar { height: 6px; display: block; }
+  .tabs::-webkit-scrollbar-track, .cal-strip::-webkit-scrollbar-track { background: transparent; }
+  .tabs::-webkit-scrollbar-thumb, .cal-strip::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 10px; }
+  .tabs::-webkit-scrollbar-thumb:hover, .cal-strip::-webkit-scrollbar-thumb:hover { background: var(--gr); }
 }
 @media (max-width: 767px) {
-  /* Mobile: Hide scrollbars for a clean swipe experience */
-  .tabs, .cal-strip {
-    scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar, .cal-strip::-webkit-scrollbar {
-    display: none;
-  }
+  .tabs, .cal-strip { scrollbar-width: none; }
+  .tabs::-webkit-scrollbar, .cal-strip::-webkit-scrollbar { display: none; }
 }
 
 /* PANELS */
@@ -281,9 +259,6 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 .fmt-box{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
 .fmt-box h3{font-family:'Bebas Neue';font-size:14px;letter-spacing:1.5px;color:var(--gold);margin-bottom:5px;}
 .fmt-box p{font-size:12px;color:var(--gr);line-height:1.7;}
-.legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 0;font-size:11px;color:var(--dim);}
-.leg{display:flex;align-items:center;gap:4px;}
-.leg-dot{width:8px;height:8px;border-radius:1px;}
 
 /* SIGNATURE */
 .signature {
@@ -331,11 +306,76 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
   font-style: normal;
 }
 
+/* KNOCKOUT BRACKET HIERARCHY */
+.bracket-wrapper {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 10px 0 20px;
+  scrollbar-width: thin;
+}
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  min-width: 240px;
+  gap: 16px;
+}
+.round-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--bdr);
+  padding-bottom: 4px;
+}
+.ko-match {
+  background: var(--s1);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+.ko-match.live { border-color: rgba(255,48,48,.4); background: rgba(255,48,48,.02); }
+.ko-match.done { opacity: 0.85; }
+.ko-team {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gr);
+}
+.ko-team.winner {
+  color: var(--w);
+  font-weight: 700;
+}
+.ko-team .score {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--gold2);
+}
+.ko-meta {
+  font-size: 10px;
+  color: var(--dim);
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+.ko-meta .live-label { color: var(--live); font-weight: 700; }
+
 @media(max-width:768px){
   .live-ticker { width: 100%; order: 3; justify-content: center; }
 }
 @media(max-width:560px){.tv{display:none;}.gg{grid-template-columns:1fr;}}
-  </style>
+</style>
 </head>
 <body>
 
@@ -375,10 +415,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 <div id="panel-groups" class="panel"><div class="loader"><div class="big-spin"></div>Loading…</div></div>
 
 <div id="panel-sched"  class="panel">
-  
-  <div id="calStrip" class="cal-strip">
-    </div>
-
+  <div id="calStrip" class="cal-strip"></div>
   <div id="sched-content">
     <div class="loader"><div class="big-spin"></div>Loading…</div>
   </div>
@@ -388,7 +425,7 @@ table.ft tbody tr.fr td{background:var(--gbg)!important;}
 
 <script>
 // ══════════════════════════════════════════════════════════
-// DATA SOURCE (Your Automated Robot Output)
+// DATA SOURCE
 // ══════════════════════════════════════════════════════════
 const LOCAL_LIVE_URL = 'https://raw.githubusercontent.com/engmickey-lang/Fifa-WC-2026/main/live_scores.json';
 // ══════════════════════════════════════════════════════════
@@ -471,7 +508,7 @@ function calcStandings(matches){
     teams.forEach(t=>st[g][t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
   }
   matches.forEach(m=>{
-    if(!m.s) return;
+    if(!m.s || m.isKO) return; // Do not calculate knockout matches in group standings
     const {t1,t2,s:[g1,g2],g}=m;
     if(!st[g]) return;
     const add=(t,gf,ga,w,d,l)=>{
@@ -553,7 +590,7 @@ function renderToday(){
           ${scoreText ? `<span class="mc-score">${scoreText}</span>` : ''}
         </div>
         <div class="mc-foot">
-          <span class="tag t-g">Group ${m.g}</span>
+          <span class="tag t-g">${m.isKO ? 'Knockout Stage' : `Group ${m.g}`}</span>
           ${done?`<span class="tag t-ok">✅ FT</span>`:!live?`<span class="tag t-nx">Upcoming</span>`:''}
           <span>${m.v}</span>
         </div>
@@ -563,7 +600,7 @@ function renderToday(){
 
   if(recentM.length){
     h+=`<div class="ibox" style="margin-top:12px"><div class="ilbl">Recent Results</div><div class="irow">`;
-    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · Group ${m.g} · ${m.v}<br>`;});
+    recentM.forEach(m=>{h+=`<span style="color:var(--green)">●</span> <strong>${fe(m.t1)} ${m.s[0]}–${m.s[1]} ${fe(m.t2)}</strong> · ${m.isKO ? 'Knockout Stage' : `Group ${m.g}`} · ${m.v}<br>`;});
     h+=`</div></div>`;
   }
   if(egyptNext){
@@ -585,7 +622,7 @@ function renderGroups(){
   let h=`<div class="note">🕐 Dubai Time · Standings calculated from results</div><div class="gg">`;
   for(const [g,rows] of Object.entries(STANDINGS)){
     const isEg=g==='G';
-    const grpM=MATCHES.filter(m=>m.g===g).sort((a,b)=>a.dt-b.dt);
+    const grpM=MATCHES.filter(m=>m.g===g && !m.isKO).sort((a,b)=>a.dt-b.dt);
     h+=`<div class="gc ${isEg?'eg':''}">
       <div class="gc-hd"><span class="gc-lbl">Group ${g}</span>${isEg?`<span class="eg-badge">🇪🇬 Egypt</span>`:''}</div>
       <table class="st"><thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
@@ -619,9 +656,9 @@ function renderGroups(){
 
 function renderSchedule(){
   let h=`<div class="note">🕐 Dubai Time (UTC+4) · ⭐ = Egypt · Dimmed = finished</div>
-  <div class="sb"><div class="sb-ttl"><span class="sp sp-g">Group Stage</span></div>
+  <div class="sb"><div class="sb-ttl"><span class="sp sp-g">Tournament Schedule</span></div>
   <div class="sw"><table class="ft">
-    <thead><tr><th>#</th><th>Dubai Date · Time</th><th>Match</th><th>Grp</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
+    <thead><tr><th>#</th><th>Dubai Date · Time</th><th>Match</th><th>Stage</th><th class="tv">Venue</th><th>Score</th></tr></thead><tbody>`;
 
   MATCHES.forEach((m,i)=>{
     const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
@@ -637,13 +674,93 @@ function renderSchedule(){
       <td class="tdt">${dateStr} · <span class="ttime">${fmtT(m.dt)}</span>
         ${today?`<span style="font-size:9px;color:var(--gold);margin-left:4px;font-weight:700">TODAY</span>`:''}</td>
       <td class="tm2">${fe(m.t1)} vs ${fe(m.t2)}</td>
-      <td><span class="gt">${m.g}</span></td>
+      <td><span class="gt">${m.isKO ? m.stageLabel : `Group ${m.g}`}</span></td>
       <td class="tv">${m.v}</td>
       <td class="${scoreText?'tsc':'tv'}">${scoreText ? `${scoreText}${done?' ✅':` 🔴`}`: (live ? `0–0 🔴` : '—')}</td>
     </tr>`;
   });
   h+=`</tbody></table></div></div>`;
   document.getElementById('sched-content').innerHTML=h;
+}
+
+function renderKO() {
+  const koMatches = MATCHES.filter(m => m.isKO);
+  
+  if (koMatches.length === 0) {
+    document.getElementById('panel-ko').innerHTML = `
+      <div class="note">🕐 Dubai Time (UTC+4 = ET+8)</div>
+      <div class="fmt-box">
+        <h3>Knockout Stage Bracket</h3>
+        <p>The Group Stage is concluding! Top teams will automatically populate this hierarchical bracket as soon as pairings are confirmed by FIFA.</p>
+      </div>`;
+    return;
+  }
+
+  const roundsData = {
+    "Round of 32": [],
+    "Round of 16": [],
+    "Quarterfinals": [],
+    "Semifinals": [],
+    "Final": []
+  };
+
+  koMatches.forEach(m => {
+    let r = m.stageLabel.toLowerCase();
+    let targetRound = "Round of 32";
+    if (r.includes("16")) targetRound = "Round of 16";
+    else if (r.includes("quarter")) targetRound = "Quarterfinals";
+    else if (r.includes("semi")) targetRound = "Semifinals";
+    else if (r.includes("final") && !r.includes("quarter") && !r.includes("semi")) targetRound = "Final";
+    
+    if (roundsData[targetRound]) {
+      roundsData[targetRound].push(m);
+    } else {
+      if (!roundsData[targetRound]) roundsData[targetRound] = [];
+      roundsData[targetRound].push(m);
+    }
+  });
+
+  let h = `<div class="note">🕐 Dubai Time · Swipe or Scroll horizontally to see full progression ➔</div>`;
+  h += `<div class="bracket-wrapper">`;
+
+  for (const [roundName, matches] of Object.entries(roundsData)) {
+    if (matches.length === 0) continue; 
+
+    h += `<div class="bracket-round">`;
+    h += `<div class="round-title">${roundName}</div>`;
+
+    matches.forEach(m => {
+      const done = m.status === "FT" || m.status === "AET" || m.status === "PEN";
+      const live = !done && isLiveNow(m.status, m.dt);
+      
+      const s1 = m.s ? m.s[0] : (live ? 0 : '');
+      const s2 = m.s ? m.s[1] : (live ? 0 : '');
+      
+      const w1 = done && m.s && m.s[0] > m.s[1];
+      const w2 = done && m.s && m.s[1] > m.s[0];
+
+      h += `
+        <div class="ko-match ${live ? 'live' : ''} ${done ? 'done' : ''}">
+          <div class="ko-team ${w1 ? 'winner' : ''}">
+            <span>${f(m.t1)} ${canon(m.t1)}</span>
+            <span class="score">${s1}</span>
+          </div>
+          <div class="ko-team ${w2 ? 'winner' : ''}">
+            <span>${f(m.t2)} ${canon(m.t2)}</span>
+            <span class="score">${s2}</span>
+          </div>
+          <div class="ko-meta">
+            <span>${live ? '<span class="live-label">🔴 LIVE</span>' : done ? '✅ Finished' : fmtT(m.dt)}</span>
+            <span>${done ? '' : fmtD(m.dt)}</span>
+          </div>
+        </div>
+      `;
+    });
+    h += `</div>`; 
+  }
+
+  h += `</div>`; 
+  document.getElementById('panel-ko').innerHTML = h;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -653,17 +770,14 @@ function setupDateFilter() {
   const strip = document.getElementById("calStrip");
   if (!strip) return;
   
-  // Creates the "ALL" option pill
   let html = `<div class="dc active" data-date="ALL" onclick="filterDays('ALL', this)">
                 <span class="dc-dow" style="margin-top:2px;">Show</span>
                 <span class="dc-day">ALL</span>
               </div>`;
   
-  // Gets every unique date from the loaded match data
   const uniqueDates = [...new Set(MATCHES.map(m => fmtD(m.dt)))];
   
   uniqueDates.forEach((dateStr) => {
-    // Splits "Thu, Jun 11" into parts so we can stack them vertically
     const parts = dateStr.replace(',', '').split(' '); 
     
     if(parts.length === 3) {
@@ -678,11 +792,9 @@ function setupDateFilter() {
 }
 
 function filterDays(filterVal, element) {
-  // Update the active gold styling on the calendar strip
   document.querySelectorAll('.dc').forEach(el => el.classList.remove('active'));
   if(element) element.classList.add('active');
   
-  // Hide or show the table rows based on the selected date
   const rows = document.querySelectorAll('#sched-content tbody tr');
   rows.forEach(row => {
     if (filterVal === "ALL" || row.getAttribute('data-date') === filterVal) {
@@ -691,16 +803,6 @@ function filterDays(filterVal, element) {
       row.style.display = "none"; 
     }
   });
-}
-
-function renderKO(){
-  document.getElementById('panel-ko').innerHTML=`
-  <div class="note">🕐 Dubai Time (UTC+4 = ET+8)</div>
-  <div class="fmt-box">
-    <h3>Tournament Format</h3>
-    <p>Top 2 from each group + 8 best 3rd-place teams = 32 advance to new <strong>Round of 32</strong>.<br>
-    🏆 <strong>Final: Sun Jul 19 · 23:00 Dubai (3pm ET)</strong></p>
-  </div>`;
 }
 
 function renderAll(){
@@ -746,10 +848,18 @@ async function loadData(){
     const fetchedData = await res.json();
     
     MATCHES = fetchedData.map(m => {
+        const d = toDt(m.utc);
+        // Fallback robust logic to ensure knockouts are categorized even if API stages are weird
+        const isGroupDate = d.getMonth() === 5 && d.getDate() <= 27; // June 27 or earlier
+        const stageText = m.stage ? m.stage.toLowerCase() : "";
+        const isKO = !isGroupDate || stageText.includes("round") || stageText.includes("final") || stageText.includes("16") || stageText.includes("32");
+            
         return {
             ...m,
             g: getGroup(m.t1),
-            dt: toDt(m.utc)
+            dt: d,
+            isKO: isKO,
+            stageLabel: m.stage || "Knockout Match"
         };
     }).sort((a,b) => a.dt - b.dt);
 
