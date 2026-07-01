@@ -1037,9 +1037,12 @@
     "t2": "Congo DR",
     "utc": "2026-07-01T16:00Z",
     "v": "Atlanta, Georgia",
-    "s": null,
+    "s": [
+      0,
+      0
+    ],
     "p": null,
-    "status": "NS",
+    "status": "LIVE",
     "stage": ""
   },
   {
