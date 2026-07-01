@@ -1050,9 +1050,12 @@
     "t2": "Senegal",
     "utc": "2026-07-01T20:00Z",
     "v": "Seattle, Washington",
-    "s": null,
+    "s": [
+      0,
+      0
+    ],
     "p": null,
-    "status": "NS",
+    "status": "LIVE",
     "stage": ""
   },
   {
