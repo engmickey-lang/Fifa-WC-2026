@@ -1024,9 +1024,12 @@
     "t2": "Ecuador",
     "utc": "2026-07-01T02:00Z",
     "v": "Mexico City",
-    "s": null,
+    "s": [
+      0,
+      0
+    ],
     "p": null,
-    "status": "NS",
+    "status": "LIVE",
     "stage": ""
   },
   {
